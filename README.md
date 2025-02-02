@@ -1,7 +1,8 @@
+
 # VirtualDyno EN
 
 ## Description
-VirtualDyno is an application for calculating the performance of a vehicle based on parameters such as power, weight, aerodynamic coefficient and traction. It allows you to estimate the acceleration time 0-100 km/h, the specific power and the average acceleration.
+VirtualDyno is an application for calculating the performance of a vehicle based on parameters such as power, weight, aerodynamic coefficient, and traction. It allows you to estimate the 0-100 km/h acceleration time, specific power, and average acceleration.
 
 ## Features
 - Insert main vehicle data (CV, weight, efficiency, air density, Cd, Cr, frontal area, traction)
@@ -18,7 +19,7 @@ VirtualDyno is an application for calculating the performance of a vehicle based
 ## Installation
 1. Clone the repository:
 ```sh
-git clone https://github.com/your-user/VirtualDyno.git
+git clone https://github.com/2alessio2/VirtualDyno.git
 cd VirtualDyno
 ```
 2. Install dependencies:
@@ -36,10 +37,19 @@ npm run ios # For iOS (macOS only) not available at the moment
 - English
 
 ## Contributions
-If you want to contribute, you can create a pull request with your changes or report issues in the "Issues" section of the repository.
+If you want to contribute, you can create a pull request with your changes or report issues in the "Issues" section of the repository. We're currently looking for people willing to help with the following:
+
+1. Bug fixing
+2. Improving the graphics to make it more attractive
+3. Creating a dataset to extract constants for improving certain calculations, such as the difference between AWD and RWD
+4. Enhancing the physics of the functions to make them more realistic and simulative
+5. Adding various inputs and outputs to enrich the app
+
+This project aims to remain free and available for everyone.
 
 ## License
 This project is distributed under the MIT license.
+
 
 _______________________________________________________________________________________________________________________________________________________________________
 
@@ -63,7 +73,7 @@ VirtualDyno è un'applicazione per il calcolo delle prestazioni di un veicolo ba
 ## Installazione
 1. Clona il repository:
    ```sh
-   git clone https://github.com/tuo-utente/VirtualDyno.git
+   git clone https://github.com/2alessio2/VirtualDyno.git
    cd VirtualDyno
    ```
 2. Installa le dipendenze:
@@ -81,9 +91,15 @@ VirtualDyno è un'applicazione per il calcolo delle prestazioni di un veicolo ba
 - Inglese
 
 ## Contributi
-Se vuoi contribuire, puoi creare una pull request con le tue modifiche o segnalare problemi nella sezione "Issues" del repository.
+Se vuoi contribuire, puoi creare una pull request con le tue modifiche o segnalare problemi nella sezione "Issues" del repository. Siamo attualmente alla ricerca di persone disposte ad aiutare con i seguenti aspetti:
+
+1. Correzione di bug
+2. Miglioramento della grafica per renderla più attraente
+3. Creazione di un dataset da cui estrarre costanti per migliorare certi calcoli, come la differenza tra AWD e RWD
+4. Miglioramento della fisica delle funzioni rendendole più realistiche e simulative
+5. Aggiunta di vari input e output per arricchire l'app
+
+Questo progetto mira a rimanere gratuito e disponibile per tutti.
 
 ## Licenza
 Questo progetto è distribuito sotto la licenza MIT.
-
-
