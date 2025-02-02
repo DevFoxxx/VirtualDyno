@@ -1,0 +1,28 @@
+{
+    "title": "VirtualDyno",
+    "cv": "HP (Horsepower):",
+    "cv_placeholder": "Enter horsepower (CV)",
+    "kg": "Weight (Kg):",
+    "kg_placeholder": "Enter weight in Kg",
+    "efficienza": "Transmission Efficiency (η):",
+    "efficienza_placeholder": "Enter efficiency",
+    "densitaAria": "Air Density (ρ, Kg/m³):",
+    "densitaAria_placeholder": "Enter air density",
+    "cd": "Aerodynamic Drag Coefficient (Cd):",
+    "cd_placeholder": "Enter Cd",
+    "cr": "Rolling Resistance Coefficient (Cr):",
+    "cr_placeholder": "Enter Cr",
+    "areaFrontale": "Front Area (m²):",
+    "areaFrontale_placeholder": "Enter front area",
+    "trazione": "Traction:",
+    "fwd": "FWD (Front-Wheel Drive)",
+    "rwd": "RWD (Rear-Wheel Drive)",
+    "awd": "AWD (All-Wheel Drive)",
+    "calcola": "Calculate",
+    "reset": "Reset",
+    "tempo": "0-100 km/h Time:",
+    "power": "Power per Ton",
+    "acceleration": "Average Acceleration:",
+    "distance": "0-100 km/h Distance:"
+  }
+  
