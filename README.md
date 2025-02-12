@@ -1,5 +1,9 @@
-
 # VirtualDyno EN
+
+![Screenshot From 2025-02-12 19-35-04](https://github.com/user-attachments/assets/5913ad50-fdb2-4a2d-8eb4-f3c2e4750c1f)
+![Screenshot From 2025-02-12 19-35-34](https://github.com/user-attachments/assets/d37dfc61-274c-4a03-ac3d-19081bb58225)
+![image](https://github.com/user-attachments/assets/3f3437f4-5a53-4725-b3c7-9e0b14798dde)
+
 
 ## Description
 VirtualDyno is an application for calculating the performance of a vehicle based on parameters such as power, weight, aerodynamic coefficient, and traction. It allows you to estimate the 0-100 km/h acceleration time, specific power, and average acceleration.
