@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Prova",
+    "name": "VirtualDyno",
     "slug": "Prova",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.example.virtualdyno"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "b93b6d3d-fcc0-428d-9d25-05d6dc3e4b93"
+      }
     }
   }
 }

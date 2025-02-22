@@ -21,8 +21,9 @@
     "calcola": "Calculate",
     "reset": "Reset",
     "tempo": "0-100 km/h Time:",
+    "power_kgcv" : "Weight/Power",
     "power": "Power per Ton",
-    "acceleration": "Average Acceleration:",
-    "distance": "0-100 km/h Distance:"
+    "acceleration": "Average Acceleration",
+    "distance": "0-100 km/h Distance"
   }
   

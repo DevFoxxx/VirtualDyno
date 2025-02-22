@@ -1,3 +1,4 @@
+
 # VirtualDyno EN
 
 ![Screenshot From 2025-02-12 19-35-04](https://github.com/user-attachments/assets/5913ad50-fdb2-4a2d-8eb4-f3c2e4750c1f)
@@ -107,3 +108,4 @@ Questo progetto mira a rimanere gratuito e disponibile per tutti.
 
 ## Licenza
 Questo progetto è distribuito sotto la licenza MIT.
+

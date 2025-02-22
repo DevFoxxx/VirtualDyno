@@ -21,8 +21,9 @@
     "calcola": "Calcola",
     "reset": "Reset",
     "tempo": "Tempo da 0 a 100 km/h:",
-    "power": "Potenza specifica:",
-    "acceleration": "Accelerazione media:",
-    "distance": "Distanza 0-100 km/h:"
+    "power_kgcv": "Peso/Potenza",
+    "power": "Potenza specifica",
+    "acceleration": "Accelerazione media",
+    "distance": "Distanza 0-100 km/h"
   }
   

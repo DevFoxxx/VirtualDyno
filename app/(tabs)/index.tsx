@@ -175,36 +175,44 @@ export default function HomeScreen() {
         )}
 
         {graphData.length > 0 && (
-          <LineChart
-            data={{
-              labels: graphData.filter((d) => d.speed % 20 === 0).map((d) => `${d.speed}Km/h`),
-              datasets: [{ data: graphData.map((d) => d.time) }],
-            }}
-            width={320}
-            height={220}
-            yAxisLabel=""
-            yAxisSuffix=" s"
-            chartConfig={{
-              backgroundColor: '#ffffff',
-              backgroundGradientFrom: '#ffffff',
-              backgroundGradientTo: '#ffffff',
-              decimalPlaces: 2,
-              color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              propsForDots: {
-                r: '0',
-                strokeWidth: '2',
-                stroke: '#000',
-              },
-            }}
-            bezier
-            style={styles.chart}
-            fromZero
-          />
+          <View>
+            <LineChart
+              data={{
+                labels: graphData.filter((d, index) => index % 10 === 0).map((d) => `${d.speed}`),
+                datasets: [{ data: graphData.map((d) => d.time) }],
+              }}
+              width={320}
+              height={240}
+              yAxisSuffix=" s"
+              chartConfig={{
+                backgroundColor: '#ffffff',
+                backgroundGradientFrom: '#ffffff',
+                backgroundGradientTo: '#ffffff',
+                decimalPlaces: 2,
+                color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                propsForDots: {
+                  r: '0.1',
+                  strokeWidth: '2',
+                  stroke: '#000',
+                },
+                style: {
+                  paddingTop: '5%',
+                  paddingBottom: '5%',
+                },
+              }}
+              bezier
+              style={styles.chart}
+              fromZero
+            />
+          </View>
         )}
 
         {result.time0to100 && (
           <View style={styles.additionalOutput}>
+            <Text style={styles.outputText}>
+              {t('power_kgcv')}: {(kg/cv).toFixed(2)} CV/Kg
+            </Text>
             <Text style={styles.outputText}>
               {t('power')}: {(cv / (kg / 1000)).toFixed(2)} CV/t
             </Text>
@@ -268,10 +276,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   chart: {
-    marginVertical: 20,
+    marginVertical: 10,
   },
   additionalOutput: {
-    marginTop: 20,
+    marginTop: 10,
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
