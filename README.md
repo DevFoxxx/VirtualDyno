@@ -25,11 +25,11 @@ cd VirtualDyno
 ```sh
 npm install
 ```
-3. Run the app on an emulator or real device:
+3. Run the app with Expo:
 ```sh
-npm run android # For Android
-npm run ios # For iOS (macOS only) not available at the moment
+npx expo start
 ```
+4. Choose to run the app on your Android emulator or a real device directly from the Expo developer tools.
 
 ## Available translations
 - Italian
@@ -40,7 +40,7 @@ If you want to contribute, you can create a pull request with your changes or re
 
 1. Bug fixing
 2. Improving the graphics to make it more attractive
-3. Creating a dataset to extract constants for improving certain calculations, such as the difference between AWD and RWD
+3. Creating a dataset to extract constants for improving certain calculations, such as the difference between AWD, FWD and RWD
 4. Enhancing the physics of the functions to make them more realistic and simulative
 5. Adding various inputs and outputs to enrich the app
 
@@ -49,8 +49,7 @@ This project aims to remain free and available for everyone.
 ## License
 This project is distributed under the MIT license.
 
-
-_______________________________________________________________________________________________________________________________________________________________________
+---
 
 # VirtualDyno IT
 
@@ -79,11 +78,11 @@ VirtualDyno è un'applicazione per il calcolo delle prestazioni di un veicolo ba
    ```sh
    npm install
    ```
-3. Avvia l'app su un emulatore o dispositivo reale:
+3. Avvia l'app con Expo:
    ```sh
-   npm run android # Per Android
-   npm run ios # Per iOS (solo su macOS) non disponibile al momento
+   npx expo start
    ```
+4. Seleziona l'opzione per avviare l'app sul tuo emulatore Android o su un dispositivo reale direttamente dagli strumenti di sviluppo Expo.
 
 ## Traduzioni disponibili
 - Italiano
@@ -94,7 +93,7 @@ Se vuoi contribuire, puoi creare una pull request con le tue modifiche o segnala
 
 1. Correzione di bug
 2. Miglioramento della grafica per renderla più attraente
-3. Creazione di un dataset da cui estrarre costanti per migliorare certi calcoli, come la differenza tra AWD e RWD
+3. Creazione di un dataset da cui estrarre costanti per migliorare certi calcoli, come la differenza tra AWD, FWD e RWD
 4. Miglioramento della fisica delle funzioni rendendole più realistiche e simulative
 5. Aggiunta di vari input e output per arricchire l'app
 
@@ -102,4 +101,3 @@ Questo progetto mira a rimanere gratuito e disponibile per tutti.
 
 ## Licenza
 Questo progetto è distribuito sotto la licenza MIT.
-

@@ -1,4 +1,4 @@
-import { StyleSheet, View, TextInput, Text, TouchableOpacity, ScrollView, Switch} from 'react-native';
+import { StyleSheet, View, TextInput, Text, TouchableOpacity, ScrollView, Switch, Image} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import { useState, useEffect } from 'react';
@@ -100,28 +100,24 @@ export default function HomeScreen() {
     setGraphData([]);
   };
 
-  // effect to animate text rotation
-  useEffect(() => {
-    rotation.value = withRepeat(
-      withTiming(360, { duration: 7000, easing: Easing.linear }),
-      -1
-    );
-  }, []);
-
-  const textAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotateY: `${rotation.value}deg` }],
-    };
-  });
-
   // calculation of specific power and other metrics
   const powerW = parseFloat(cv) * 735.5;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Animated.Text style={[styles.Text, textAnimatedStyle]}>
-        {t('title')}
-      </Animated.Text>
+      <View style={styles.container}>
+        <View style={styles.row}>
+          <Animated.View style={styles.imageContainer}>
+            <Image
+              source={require('../../assets/images/icon.png')} 
+              style={styles.icon}
+            />
+          </Animated.View>
+          <Animated.Text style={styles.Text}>
+            {t('title')}
+          </Animated.Text>
+        </View>
+      </View>
       
       <View style={styles.languageSwitcher}>
         <Text style={styles.languageText}>IT</Text>
@@ -163,7 +159,7 @@ export default function HomeScreen() {
             <Text>{t('calcola')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.buttonBlack} onPress={handleReset}>
+          <TouchableOpacity style={styles.buttonBlue} onPress={handleReset}>
             <Text style={{ color: 'white', textAlign: 'center' }}>{t('reset')}</Text>
           </TouchableOpacity>
         </View>
@@ -235,6 +231,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'white'
+  },
+  row: {
+    flexDirection: 'row',         
+    alignItems: 'center',         
+    justifyContent: 'center',     
   },
   label: {
     fontSize: 16,
@@ -265,8 +267,8 @@ const styles = StyleSheet.create({
     flex: 0.45,
     alignItems: 'center',
   },
-  buttonBlack: {
-    backgroundColor: 'black',
+  buttonBlue: {
+    backgroundColor: '#004aad',
     padding: 10,
     flex: 0.45,
     alignItems: 'center',
@@ -292,9 +294,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   Text: {
-    fontSize: 30,
+    fontSize: 25,
     marginTop: 30,
-    fontWeight: 'bold',
+    fontWeight: 'light',
+    fontStyle: 'italic',
+    color: '#004aad',
+    borderColor: 'black',
   },
   languageSwitcher: {
     flexDirection: 'row',
@@ -304,5 +309,14 @@ const styles = StyleSheet.create({
   languageText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  imageContainer: {
+    marginTop: 30,
+    marginRight: 5
+  },
+  icon: {
+    width: 50, 
+    height: 50,
+    resizeMode: 'contain',
   },
 });
