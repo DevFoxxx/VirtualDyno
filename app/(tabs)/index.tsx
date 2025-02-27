@@ -344,16 +344,18 @@ export default function HomeScreen() {
               height={240}
               yAxisSuffix=' s'
               chartConfig={{
-                backgroundColor: '#ffffff',
-                backgroundGradientFrom: '#ffffff',
-                backgroundGradientTo: '#ffffff',
+                backgroundColor: currentTheme.background,
+                backgroundGradientFrom: currentTheme.background,
+                backgroundGradientTo: currentTheme.background,
                 decimalPlaces: 2,
-                color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                color: (opacity = 1) =>
+                  `rgba(${currentTheme.textRGB}, ${opacity})`,
+                labelColor: (opacity = 1) =>
+                  `rgba(${currentTheme.textRGB}, ${opacity})`,
                 propsForDots: {
                   r: '0.1',
                   strokeWidth: '2',
-                  stroke: '#000',
+                  stroke: currentTheme.text,
                 },
                 style: {
                   paddingTop: '5%',
