@@ -19,7 +19,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LineChart } from 'react-native-chart-kit';
 import { DarkTheme, NavigationContainer } from '@react-navigation/native';
@@ -167,6 +167,11 @@ export default function HomeScreen() {
     }
 
     setGraphData(data);
+
+    // scroll down to the graph when its generated, time delay is used to ensure graph is generated before it scrolls down
+    setTimeout(() => {
+      ref.current?.scrollToEnd();
+    }, 100);
   };
 
   // function to reset all inputs and results
@@ -185,8 +190,11 @@ export default function HomeScreen() {
   // calculation of specific power and other metrics
   const powerW = parseFloat(cv) * 735.5;
 
+  //used to scroll all the way down to reveal the graph
+  const ref = useRef<ScrollView>(null);
+
   return (
-    <ScrollView contentContainerStyle={dynamicStyles.container}>
+    <ScrollView ref={ref} contentContainerStyle={dynamicStyles.container}>
       <View style={dynamicStyles.container}>
         <View style={styles.row}>
           <Animated.View style={styles.imageContainer}>
@@ -335,6 +343,7 @@ export default function HomeScreen() {
                 color: '#ECEDEE',
                 textAlign: 'center',
                 fontWeight: 'bold',
+                fontSize: 16,
               }}
             >
               {t('calcola')}
@@ -347,6 +356,7 @@ export default function HomeScreen() {
                 color: '#004aad',
                 textAlign: 'center',
                 fontWeight: 'bold',
+                fontSize: 16,
               }}
             >
               {t('reset')}
