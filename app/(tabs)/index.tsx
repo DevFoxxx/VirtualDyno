@@ -81,6 +81,7 @@ export default function HomeScreen() {
     } as TextStyle,
 
     input: {
+      fontSize: 16,
       height: 60,
       borderColor: '#0a7ea4',
       borderWidth: 2,
