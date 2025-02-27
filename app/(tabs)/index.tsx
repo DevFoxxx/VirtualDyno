@@ -218,13 +218,13 @@ export default function HomeScreen() {
           {colorScheme === 'dark' ? (
             <Feather
               name='moon'
-              size={48}
+              size={36}
               color={dynamicStyles.expoIcon.color}
             />
           ) : (
             <Feather
               name='sun'
-              size={48}
+              size={36}
               color={dynamicStyles.expoIcon.color}
             />
           )}
