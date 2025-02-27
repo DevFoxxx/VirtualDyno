@@ -1,5 +1,13 @@
-# VirtualDyno EN
+# <img src="assets/images/icon.png" alt="icon" width="100" height="100" /> 
+# VirtualDyno
 
+![React Native](https://img.shields.io/badge/React%20Native-000000?style=for-the-badge&logo=react&logoColor=61DAFB) ![WIP](https://img.shields.io/badge/WIP%20-%20In%20progress-green) ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
+
+## Screenshot (development phase, light/dark theme)
+ 
+![alt text](image-1.png) ![alt text](image-2.png) ![alt text](image-3.png)
+
+# 🇬🇧 EN 
 ## Description
 VirtualDyno is an application for calculating the performance of a vehicle based on parameters such as power, weight, aerodynamic coefficient, and traction. It allows you to estimate the 0-100 km/h acceleration time, specific power, and average acceleration.
 
@@ -149,12 +157,10 @@ If you want to contribute, you can create a pull request with your changes or re
 This project aims to remain free and available for everyone.
 
 ## License
-This project is distributed under the MIT license.
+This project is distributed under the [MIT license](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
 
 ---
-
-# VirtualDyno IT
-
+# 🇮🇹 IT
 ## Descrizione
 VirtualDyno è un'applicazione per il calcolo delle prestazioni di un veicolo basata su parametri come potenza, peso, coefficiente aerodinamico e trazione. Permette di stimare il tempo di accelerazione 0-100 km/h, la potenza specifica e l'accelerazione media.
 
@@ -304,4 +310,4 @@ Se vuoi contribuire, puoi creare una pull request con le tue modifiche o segnala
 Questo progetto mira a rimanere gratuito e disponibile per tutti.
 
 ## Licenza
-Questo progetto è distribuito sotto la licenza MIT.
+Questo progetto è distribuito sotto la [licenza MIT](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
