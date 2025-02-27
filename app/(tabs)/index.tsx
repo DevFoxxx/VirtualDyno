@@ -69,7 +69,8 @@ export default function HomeScreen() {
       tintColor: currentTheme.icon,
     },
     label: {
-      fontSize: 16,
+      paddingBottom: 10,
+      fontSize: 18,
       fontWeight: 'bold',
       color: currentTheme.text,
     } as TextStyle,
@@ -80,10 +81,11 @@ export default function HomeScreen() {
     } as TextStyle,
 
     input: {
-      height: 40,
-      borderColor: '#ccc',
-      borderWidth: 1,
-      marginBottom: 10,
+      height: 60,
+      borderColor: '#0a7ea4',
+      borderWidth: 2,
+      borderRadius: 6,
+      marginBottom: 30,
       paddingLeft: 10,
       color: currentTheme.text,
     },
@@ -200,6 +202,7 @@ export default function HomeScreen() {
       <View
         style={{
           marginVertical: 20,
+          marginBottom: 40,
           width: '100%',
           flexDirection: 'row',
           alignItems: 'center',
@@ -326,15 +329,26 @@ export default function HomeScreen() {
         </Picker>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.buttonWhite}
-            onPress={handleCalculate}
-          >
-            <Text>{t('calcola')}</Text>
+          <TouchableOpacity style={styles.buttonBlue} onPress={handleCalculate}>
+            <Text
+              style={{
+                color: '#ECEDEE',
+                textAlign: 'center',
+                fontWeight: 'bold',
+              }}
+            >
+              {t('calcola')}
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.buttonBlue} onPress={handleReset}>
-            <Text style={{ color: 'white', textAlign: 'center' }}>
+          <TouchableOpacity style={styles.buttonWhite} onPress={handleReset}>
+            <Text
+              style={{
+                color: '#004aad',
+                textAlign: 'center',
+                fontWeight: 'bold',
+              }}
+            >
               {t('reset')}
             </Text>
           </TouchableOpacity>
@@ -448,16 +462,22 @@ const styles = StyleSheet.create({
   buttonWhite: {
     backgroundColor: 'white',
     padding: 10,
+    height: 60,
     borderWidth: 1,
     borderColor: '#ccc',
+    borderRadius: 50,
     flex: 0.45,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonBlue: {
     backgroundColor: '#004aad',
     padding: 10,
+    height: 60,
+    borderRadius: 50,
     flex: 0.45,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   resultText: {
     fontSize: 18,
