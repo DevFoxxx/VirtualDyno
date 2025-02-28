@@ -96,88 +96,95 @@ export default function HomeScreen() {
     setIsEnglish(!isEnglish);
   };
 
-  const calculateAccelerationTime = (targetSpeed: number) => {
-    const powerCV = parseFloat(cv) || 0;
-    const mass = parseFloat(kg) || 1500;
-    const eta = Math.min(parseFloat(efficienza), 0.95);
-    const rho = parseFloat(densitaAria);
-    const cdValue = parseFloat(cd);
-    const crValue = parseFloat(cr);
-    const area = parseFloat(areaFrontale) || 2.2;
+  /* -------------------------------- START EXPERIMENTAL FUNCTIONS -------------------------------- */
 
-    // 1. Aggiustamento potenza per alte velocità
+  const calculateAccelerationTime = (targetSpeed: number) => {
+    // 1. Retrieve parameters and set default values
+    const powerCV = parseFloat(cv) || 0; // Power in CV (horsepower)
+    const mass = parseFloat(kg) || 1500; // Mass of the vehicle (default 1500 kg)
+    const eta = Math.min(parseFloat(efficienza), 0.95); // Efficiency, limited to 0.95
+    const rho = parseFloat(densitaAria); // Air density (rho)
+    const cdValue = parseFloat(cd); // Drag coefficient (cd)
+    const crValue = parseFloat(cr); // Rolling resistance coefficient (cr)
+    const area = parseFloat(areaFrontale) || 2.2; // Frontal area (default 2.2 m²)
+
+    // 2. Adjust power for high speeds
     const maxPowerW = powerCV * 735.49875 * eta * (1 - 0.00015 * Math.pow(targetSpeed, 1.5));
 
-    // 2. Parametri tecnici aggiornati
-    const maxPowerRpm = 6800;
-    const redlineRpm = 7800;
-    const tireRadius = 0.33;
-    const gearRatios = [3.4, 2.6, 1.9, 1.4, 1.1, 0.9]; // Rapporti più lunghi per alte velocità
-    const finalDriveRatio = 3.2;
+    // 3. Technical parameters related to the car's performance
+    const maxPowerRpm = 6800; // Maximum power RPM
+    const redlineRpm = 7800; // Redline RPM (maximum safe RPM)
+    const tireRadius = 0.33; // Tire radius in meters
+    const gearRatios = [3.4, 2.6, 1.9, 1.4, 1.1, 0.9]; // Gear ratios for different gears
+    const finalDriveRatio = 3.2; // Final drive ratio
 
-    let speed = 0;
-    let time = 0;
-    let currentGear = 0;
-    let currentRpm = 2200;
-    const powerToWeight = powerCV / mass;
-    const isSupercar = powerToWeight > 0.35 && mass < 1700;
-    const isHypercar = powerToWeight > 0.45 && mass < 1500;  // Nuova categoria hypercar
+    let speed = 0; // Current speed in m/s
+    let time = 0; // Total time taken for acceleration
+    let currentGear = 0; // The current gear
+    let currentRpm = 2200; // Initial RPM
+    const powerToWeight = powerCV / mass; // Power-to-weight ratio
+    const isSupercar = powerToWeight > 0.35 && mass < 1700; // Supercar classification based on power-to-weight
+    const isHypercar = powerToWeight > 0.45 && mass < 1500;  // Hypercar classification
 
-    // 3. Modello aerodinamico avanzato
+    // 4. Aerodynamic drag model
     const getAeroDrag = (speed: number) => {
+        // Base aerodynamic drag formula
         const baseDrag = 0.5 * rho * cdValue * area * Math.pow(speed, 2);
-        const highSpeedFactor = 1 + Math.pow(speed/35, 1.8);  // Cambia esponente per minor resistenza
+        // Apply a high-speed factor for drag increase at higher speeds
+        const highSpeedFactor = 1 + Math.pow(speed/35, 1.8);  // Exponent adjusts drag resistance at higher speeds
         return baseDrag * highSpeedFactor;
     };
 
-    // 4. Sistema di correzione differenziata
+    // 5. Speed correction for different vehicle types
     const getSpeedCorrection = () => {
-      const base = isSupercar ? 0.22 : isHypercar ? 0.18 : 0.6;  // Correzione per hypercar ancora minore
-      const speedFactor = 1 + (targetSpeed/100) * (isSupercar ? 0.13 : isHypercar ? 0.1 : 0.5);  // Aggiusta anche per hypercar
+      const base = isSupercar ? 0.22 : isHypercar ? 0.18 : 0.6;  // A base correction factor for supercars and hypercars
+      const speedFactor = 1 + (targetSpeed/100) * (isSupercar ? 0.13 : isHypercar ? 0.1 : 0.5);  // Adjusts based on speed and vehicle type
       return base * speedFactor;
     };
 
-    // Simulazione aggiornata
+    // 6. Simulation loop for acceleration calculation
     while (speed < targetSpeed / 3.6 && currentGear < gearRatios.length) {
-        const wheelCircumference = 2 * Math.PI * tireRadius;
+        const wheelCircumference = 2 * Math.PI * tireRadius; // Calculate tire circumference
+        // RPM calculation based on current speed, gear, and final drive
         currentRpm = (speed * 60 * gearRatios[currentGear] * finalDriveRatio) / (wheelCircumference / 1000);
-        currentRpm = Math.min(currentRpm, redlineRpm);
+        currentRpm = Math.min(currentRpm, redlineRpm); // Ensure RPM doesn't exceed redline
 
-        const torque = (maxPowerW * 9549) / Math.max(currentRpm, 1500);
+        const torque = (maxPowerW * 9549) / Math.max(currentRpm, 1500); // Torque calculation
         let wheelForce = (torque * gearRatios[currentGear] * finalDriveRatio) / tireRadius;
 
-        // 5. Modello di trazione realistico (adattato per auto normali)
+        // 7. Traction model based on drivetrain type (FWD, RWD, AWD)
         const maxTraction = {
-            FWD: 1.1 * mass * 9.81 * Math.exp(-speed/20),  // Migliorato il fattore di velocità
-            RWD: 1.3 * mass * 9.81 * Math.exp(-speed/18),
-            AWD: 1.5 * mass * 9.81 * Math.exp(-speed/22)
-        }[trazione];
+            FWD: 1.1 * mass * 9.81 * Math.exp(-speed/20),  // Front-Wheel Drive (FWD)
+            RWD: 1.3 * mass * 9.81 * Math.exp(-speed/18),  // Rear-Wheel Drive (RWD)
+            AWD: 1.5 * mass * 9.81 * Math.exp(-speed/22)   // All-Wheel Drive (AWD)
+        }[trazione]; // Select the appropriate traction type (FWD, RWD, AWD)
 
-        wheelForce = Math.min(wheelForce, maxTraction);
+        wheelForce = Math.min(wheelForce, maxTraction); // Ensure wheel force doesn't exceed traction limit
 
-        // 6. Forze resistenti potenziate (più elevate per auto normali)
-        const fRoll = crValue * mass * 9.81 * (1 + speed/100);
-        const fAero = getAeroDrag(speed);
+        // 8. Resistance forces (aerodynamic and rolling resistance)
+        const fRoll = crValue * mass * 9.81 * (1 + speed/100); // Rolling resistance force
+        const fAero = getAeroDrag(speed); // Aerodynamic drag force
 
+        // 9. Acceleration calculation based on net forces
         const acceleration = (wheelForce - fAero - fRoll) / mass;
 
-        // 7. Time-step adattivo con maggiore precisione per accelerazioni basse
-        const dt = Math.max(0.01, 0.03 - acceleration * 0.05);  // Ridurre il passo del tempo per accelerazioni basse
-        speed += acceleration * dt;
-        time += dt;
+        // 10. Adaptive time-step for more precise simulation at lower accelerations
+        const dt = Math.max(0.01, 0.03 - acceleration * 0.05);  // Dynamic time-step
+        speed += acceleration * dt;  // Update speed
+        time += dt;  // Update time
 
-        // 8. Cambio marcia con perdite progressive
+        // 11. Gear shift logic with progressive losses
         if (currentRpm >= redlineRpm - 300 && currentGear < gearRatios.length - 1) {
-            time += 0.15 + currentGear * 0.05;  // Minor penalità per il cambio marcia
-            currentGear++;
-            currentRpm = redlineRpm * 0.65;
+            time += 0.15 + currentGear * 0.05;  // Time penalty for gear shift
+            currentGear++;  // Shift to next gear
+            currentRpm = redlineRpm * 0.65; // Adjust RPM after gear shift
         }
 
-        if (acceleration < 0.2) break;
+        if (acceleration < 0.2) break; // Stop the simulation if acceleration becomes too low
     }
 
-    // 9. Correzione finale rinforzata
-    return (time * getSpeedCorrection()).toFixed(2);
+    // 12. Final time correction for vehicle type and performance
+    return (time * getSpeedCorrection()).toFixed(2); // Return the final time with correction factor
   };
 
   const calculateTopSpeed = () => {
@@ -209,6 +216,8 @@ export default function HomeScreen() {
     // return Math.min(vMid, parseFloat(limitatore) || vMid).toFixed(2); // Consider electronic speed limiter
     return vMid.toFixed(2);
   };  
+
+  /* -------------------------------- END EXPERIMENTAL FUNCTIONS -------------------------------- */
 
   // function to trigger calculation and update state
   const handleCalculate = () => {
