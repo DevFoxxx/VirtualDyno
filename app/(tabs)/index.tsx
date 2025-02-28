@@ -97,86 +97,89 @@ export default function HomeScreen() {
   };
 
   const calculateAccelerationTime = (targetSpeed: number) => {
-    // Convert input values to numbers
-    const powerCV = parseFloat(cv) || 0; // Horsepower in CV (metric horsepower)
-    const mass = parseFloat(kg) || 1500; // Vehicle mass (kg), default value is 1500 kg
-    const eta = Math.min(parseFloat(efficienza), 0.95); // Efficiency (max value capped at 0.95)
-    const rho = parseFloat(densitaAria); // Air density (kg/m^3)
-    const cdValue = parseFloat(cd); // Drag coefficient
-    const crValue = parseFloat(cr); // Rolling resistance coefficient
-    const area = parseFloat(areaFrontale) || 2.2; // Frontal area (m^2), default value is 2.2 m^2
+    const powerCV = parseFloat(cv) || 0;
+    const mass = parseFloat(kg) || 1500;
+    const eta = Math.min(parseFloat(efficienza), 0.95);
+    const rho = parseFloat(densitaAria);
+    const cdValue = parseFloat(cd);
+    const crValue = parseFloat(cr);
+    const area = parseFloat(areaFrontale) || 2.2;
 
-    // Derived technical parameters
-    const maxPowerW = powerCV * 735.49875 * eta; // Maximum power in Watts (considering efficiency)
-    const maxPowerRpm = 6500; // Max power RPM (revolutions per minute)
-    const redlineRpm = 7500; // Redline RPM (engine speed limit)
-    const tireRadius = 0.33; // Tire radius (m)
-    const gearRatios = [3.1, 2.2, 1.7, 1.3, 1.0, 0.8]; // Gear ratios for the vehicle
-    const finalDriveRatio = 3.7; // Final drive ratio of the vehicle
-    
-    // Simulation variables
-    let speed = 0; // Current speed of the vehicle (m/s)
-    let time = 0; // Elapsed time (seconds)
-    let currentGear = 0; // Current gear
-    let currentRpm = 2000; // Initial RPM
+    // 1. Aggiustamento potenza per alte velocità
+    const maxPowerW = powerCV * 735.49875 * eta * (1 - 0.00015 * Math.pow(targetSpeed, 1.5));
 
-    // Determine vehicle type based on power-to-weight ratio
-    const powerToWeight = powerCV / mass; 
-    const isSupercar = powerToWeight > 0.4 && mass < 1800; // Supercar if power-to-weight ratio > 0.4 and mass < 1800 kg
-    const isSportcar = powerToWeight > 0.2 && powerToWeight <= 0.4; // Sportcar if ratio between 0.2 and 0.4
+    // 2. Parametri tecnici aggiornati
+    const maxPowerRpm = 6800;
+    const redlineRpm = 7800;
+    const tireRadius = 0.33;
+    const gearRatios = [3.4, 2.6, 1.9, 1.4, 1.1, 0.9]; // Rapporti più lunghi per alte velocità
+    const finalDriveRatio = 3.2;
 
-    // Start simulation loop until target speed is reached
-    while (speed < targetSpeed / 3.6 && currentGear < gearRatios.length) { // targetSpeed is converted to m/s
-        // Calculate RPM based on current speed and gear
-        const wheelCircumference = 2 * Math.PI * tireRadius; // Circumference of the tire (m)
-        currentRpm = (speed * 60 * gearRatios[currentGear] * finalDriveRatio) / (wheelCircumference / 1000); // RPM formula
-        currentRpm = Math.min(currentRpm, redlineRpm); // Limit RPM to redline
+    let speed = 0;
+    let time = 0;
+    let currentGear = 0;
+    let currentRpm = 2200;
+    const powerToWeight = powerCV / mass;
+    const isSupercar = powerToWeight > 0.35 && mass < 1700;
+    const isHypercar = powerToWeight > 0.45 && mass < 1500;  // Nuova categoria hypercar
 
-        // Calculate torque based on power and RPM
-        const torque = (maxPowerW * 9549) / Math.max(currentRpm, 1000); // Torque in Nm (Newton meters)
+    // 3. Modello aerodinamico avanzato
+    const getAeroDrag = (speed: number) => {
+        const baseDrag = 0.5 * rho * cdValue * area * Math.pow(speed, 2);
+        const highSpeedFactor = 1 + Math.pow(speed/35, 1.8);  // Cambia esponente per minor resistenza
+        return baseDrag * highSpeedFactor;
+    };
 
-        // Force applied to the wheels
-        let wheelForce = (torque * gearRatios[currentGear] * finalDriveRatio) / tireRadius; // Wheel force in N (Newtons)
+    // 4. Sistema di correzione differenziata
+    const getSpeedCorrection = () => {
+      const base = isSupercar ? 0.22 : isHypercar ? 0.18 : 0.6;  // Correzione per hypercar ancora minore
+      const speedFactor = 1 + (targetSpeed/100) * (isSupercar ? 0.13 : isHypercar ? 0.1 : 0.5);  // Aggiusta anche per hypercar
+      return base * speedFactor;
+    };
 
-        // Calculate resisting forces (aerodynamic and rolling resistance)
-        const fRoll = crValue * mass * 9.81; // Rolling resistance force (N)
-        const fAero = 0.5 * rho * cdValue * area * speed ** 2; // Aerodynamic drag force (N)
+    // Simulazione aggiornata
+    while (speed < targetSpeed / 3.6 && currentGear < gearRatios.length) {
+        const wheelCircumference = 2 * Math.PI * tireRadius;
+        currentRpm = (speed * 60 * gearRatios[currentGear] * finalDriveRatio) / (wheelCircumference / 1000);
+        currentRpm = Math.min(currentRpm, redlineRpm);
 
-        // Limit traction force based on vehicle type and current speed
-        const tractionCoefficient = {
-            FWD: 1.2, // Front-wheel drive
-            RWD: 1.4, // Rear-wheel drive
-            AWD: 1.6  // All-wheel drive
-        }[trazione] * (1 - speed / 200); // Decrease traction with higher speed
-        
-        const maxTraction = tractionCoefficient * mass * 9.81; // Maximum traction force (N)
-        wheelForce = Math.min(wheelForce, maxTraction); // Limit wheel force to max traction
+        const torque = (maxPowerW * 9549) / Math.max(currentRpm, 1500);
+        let wheelForce = (torque * gearRatios[currentGear] * finalDriveRatio) / tireRadius;
 
-        // Calculate acceleration
-        const acceleration = (wheelForce - fAero - fRoll) / mass; // Acceleration in m/s^2
+        // 5. Modello di trazione realistico (adattato per auto normali)
+        const maxTraction = {
+            FWD: 1.1 * mass * 9.81 * Math.exp(-speed/20),  // Migliorato il fattore di velocità
+            RWD: 1.3 * mass * 9.81 * Math.exp(-speed/18),
+            AWD: 1.5 * mass * 9.81 * Math.exp(-speed/22)
+        }[trazione];
 
-        // Time step for the simulation
-        const dt = 0.01; // Time step (seconds)
-        speed += acceleration * dt; // Update speed
-        time += dt; // Update elapsed time
+        wheelForce = Math.min(wheelForce, maxTraction);
 
-        // Gear shift logic
-        if (currentRpm >= redlineRpm - 500 && currentGear < gearRatios.length - 1) {
-            time += isSupercar ? 0.15 : isSportcar ? 0.25 : 0.35; // Time for shifting gears based on car type
-            currentGear++; // Shift to the next gear
-            currentRpm = maxPowerRpm * 0.7; // Set RPM after shifting gear
+        // 6. Forze resistenti potenziate (più elevate per auto normali)
+        const fRoll = crValue * mass * 9.81 * (1 + speed/100);
+        const fAero = getAeroDrag(speed);
+
+        const acceleration = (wheelForce - fAero - fRoll) / mass;
+
+        // 7. Time-step adattivo con maggiore precisione per accelerazioni basse
+        const dt = Math.max(0.01, 0.03 - acceleration * 0.05);  // Ridurre il passo del tempo per accelerazioni basse
+        speed += acceleration * dt;
+        time += dt;
+
+        // 8. Cambio marcia con perdite progressive
+        if (currentRpm >= redlineRpm - 300 && currentGear < gearRatios.length - 1) {
+            time += 0.15 + currentGear * 0.05;  // Minor penalità per il cambio marcia
+            currentGear++;
+            currentRpm = redlineRpm * 0.65;
         }
 
-        // Stop simulation if acceleration is very low (near zero)
-        if (acceleration < 0.1) break;
+        if (acceleration < 0.2) break;
     }
 
-    // Final correction based on the vehicle type (Supercar, Sportcar, or regular)
-    const correction = isSupercar ? 0.85 : isSportcar ? 0.92 : 1.0;
-    return (time * correction).toFixed(2); // Return time with correction factor (seconds, 2 decimal places)
-};
+    // 9. Correzione finale rinforzata
+    return (time * getSpeedCorrection()).toFixed(2);
+  };
 
-  
   const calculateTopSpeed = () => {
     const powerW = parseFloat(cv) * 735.5; // Convert horsepower (CV) to watts
     const eta = parseFloat(efficienza); // Efficiency factor
