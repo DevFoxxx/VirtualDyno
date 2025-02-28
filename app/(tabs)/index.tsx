@@ -7,34 +7,24 @@ import {
   ScrollView,
   Switch,
   Image,
-  Button,
   ViewStyle,
   TextStyle,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
-import { useState, useEffect } from 'react';
+import Animated from 'react-native-reanimated';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LineChart } from 'react-native-chart-kit';
-import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Feather from '@expo/vector-icons/Feather';
 
 export default function HomeScreen() {
-  // shared value for animation
-  const rotation = useSharedValue(0);
-
-  // language translation hook
   const { t, i18n } = useTranslation();
+  const [showError, setShowError] = useState(false);
+  const [selectedHelp, setSelectedHelp] = useState<string | null>(null);
 
-  // state variables for user input and results
+  // State variables
   const [cv, setCv] = useState('');
   const [kg, setKg] = useState('');
   const [efficienza, setEfficienza] = useState('0.85');
@@ -47,14 +37,24 @@ export default function HomeScreen() {
   const [graphData, setGraphData] = useState([]);
   const [isEnglish, setIsEnglish] = useState(i18n.language === 'en');
 
+  const requiredFieldsFilled = cv && kg && areaFrontale;
+  const buttonStyle = requiredFieldsFilled ? styles.buttonWhite : styles.buttonDisabled;
+
   const { colorScheme, toggleTheme } = useColorScheme();
   const currentTheme = colorScheme === 'dark' ? Colors.dark : Colors.light;
-  // Toggle the system theme
-  const handleThemeToggle = (value: boolean) => {
-    toggleTheme();
+
+  // Help messages translations
+  const helpMessages = {
+    cv: t('help_cv'),
+    kg: t('help_kg'),
+    efficienza: t('help_efficienza'),
+    densitaAria: t('help_densitaAria'),
+    cd: t('help_cd'),
+    cr: t('help_cr'),
+    areaFrontale: t('help_areaFrontale'),
+    trazione: t('help_trazione'),
   };
 
-  //need dynamic styles instead of static as the theme changes due to users preference (dark/light mode)
   const dynamicStyles = {
     container: {
       flexGrow: 1,
@@ -65,20 +65,11 @@ export default function HomeScreen() {
     text: {
       color: currentTheme.text,
     } as TextStyle,
-    icon: {
-      tintColor: currentTheme.icon,
-    },
     label: {
       fontSize: 16,
       fontWeight: 'bold',
       color: currentTheme.text,
     } as TextStyle,
-    languageText: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: currentTheme.text,
-    } as TextStyle,
-
     input: {
       height: 40,
       borderColor: '#ccc',
@@ -135,6 +126,11 @@ export default function HomeScreen() {
 
   // function to trigger calculation and update state
   const handleCalculate = () => {
+    if (!requiredFieldsFilled) {
+      setShowError(true);
+      return;
+    }
+    setShowError(false);
     const time0to100 = calculateAccelerationTime(100);
     setResult({ time0to100 });
 
@@ -153,6 +149,7 @@ export default function HomeScreen() {
     setGraphData(data);
   };
 
+
   // function to reset all inputs and results
   const handleReset = () => {
     setCv('');
@@ -169,285 +166,292 @@ export default function HomeScreen() {
   // calculation of specific power and other metrics
   const powerW = parseFloat(cv) * 735.5;
 
-  return (
-    <ScrollView contentContainerStyle={dynamicStyles.container}>
-      <View style={dynamicStyles.container}>
-        <View style={styles.row}>
-          <Animated.View style={styles.imageContainer}>
-            <Image
-              source={require('../../assets/images/icon.png')}
-              style={styles.icon}
-            />
-          </Animated.View>
-          <Animated.Text style={styles.Text}>{t('title')}</Animated.Text>
-        </View>
-      </View>
-
-      <View
-        style={{
-          marginVertical: 20,
-          width: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 30,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={dynamicStyles.languageText}>IT</Text>
-          <Switch value={isEnglish} onValueChange={handleLanguageToggle} />
-          <Text style={dynamicStyles.languageText}>EN</Text>
-        </View>
-
-        {/* Day/night mode switch using expo icon //////////////////////////////*/}
-        <TouchableOpacity onPress={toggleTheme}>
-          {colorScheme === 'dark' ? (
-            <Feather
-              name='moon'
-              size={48}
-              color={dynamicStyles.expoIcon.color}
-            />
-          ) : (
-            <Feather
-              name='sun'
-              size={48}
-              color={dynamicStyles.expoIcon.color}
-            />
-          )}
+  // Render input field with help icon
+  const renderInputField = (labelKey: string, state: string, setter: any, helpKey: string) => (
+    <View style={styles.inputGroup}>
+      <View style={styles.labelContainer}>
+        <Text style={dynamicStyles.label}>{t(labelKey)}</Text>
+        <TouchableOpacity onPress={() => setSelectedHelp(selectedHelp === helpKey ? null : helpKey)}>
+          <Feather name="help-circle" size={16} color={currentTheme.text} style={styles.helpIcon} />
         </TouchableOpacity>
       </View>
-      {/* ///////////////////////////////////////////////// */}
-      <View style={styles.inputContainer}>
-        <Text style={dynamicStyles.label}>{t('cv')}</Text>
-        <TextInput
-          style={dynamicStyles.input}
-          keyboardType='numeric'
-          value={cv}
-          onChangeText={setCv}
-          placeholder={t('cv_placeholder')}
-          placeholderTextColor={currentTheme.placeHolderColor}
-        />
+      <TextInput
+        style={dynamicStyles.input}
+        keyboardType="numeric"
+        value={state}
+        onChangeText={setter}
+        placeholder={t(`${labelKey}_placeholder`)}
+        placeholderTextColor={currentTheme.placeHolderColor}
+      />
+      {selectedHelp === helpKey && <Text style={styles.helpText}>{helpMessages[helpKey]}</Text>}
+    </View>
+  );
 
-        <Text style={dynamicStyles.label}>{t('kg')}</Text>
-        <TextInput
-          style={dynamicStyles.input}
-          keyboardType='numeric'
-          value={kg}
-          onChangeText={setKg}
-          placeholder={t('kg_placeholder')}
-          placeholderTextColor={currentTheme.placeHolderColor}
-        />
+  return (
+    <ScrollView contentContainerStyle={dynamicStyles.container}>
+      {/* Header Section */}
+      <View style={styles.headerContainer}>
+        <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
+        <Text style={styles.title}>{t('title')}</Text>
+      </View>
 
-        <Text style={dynamicStyles.label}>{t('efficienza')}</Text>
-        <TextInput
-          style={dynamicStyles.input}
-          keyboardType='numeric'
-          value={efficienza}
-          onChangeText={setEfficienza}
-          placeholder={t('efficienza_placeholder')}
-          placeholderTextColor={currentTheme.placeHolderColor}
-        />
+      {/* Language and Theme Controls */}
+      <View style={styles.controlsContainer}>
+        <View style={styles.languageContainer}>
+          <Text style={dynamicStyles.text}>IT</Text>
+          <Switch value={isEnglish} onValueChange={() => {
+            const newLang = isEnglish ? 'it' : 'en';
+            i18n.changeLanguage(newLang);
+            setIsEnglish(!isEnglish);
+          }} />
+          <Text style={dynamicStyles.text}>EN</Text>
+        </View>
 
-        <Text style={dynamicStyles.label}>{t('densitaAria')}</Text>
-        <TextInput
-          style={dynamicStyles.input}
-          keyboardType='numeric'
-          value={densitaAria}
-          onChangeText={setDensitaAria}
-          placeholder={t('densitaAria_placeholder')}
-          placeholderTextColor={currentTheme.placeHolderColor}
-        />
-
-        <Text style={dynamicStyles.label}>{t('cd')}</Text>
-        <TextInput
-          style={dynamicStyles.input}
-          keyboardType='numeric'
-          value={cd}
-          onChangeText={setCd}
-          placeholder={t('cd_placeholder')}
-          placeholderTextColor={currentTheme.placeHolderColor}
-        />
-
-        <Text style={dynamicStyles.label}>{t('cr')}</Text>
-        <TextInput
-          style={dynamicStyles.input}
-          keyboardType='numeric'
-          value={cr}
-          onChangeText={setCr}
-          placeholder={t('cr_placeholder')}
-          placeholderTextColor={currentTheme.placeHolderColor}
-        />
-
-        <Text style={dynamicStyles.label}>{t('areaFrontale')}</Text>
-        <TextInput
-          style={dynamicStyles.input}
-          keyboardType='numeric'
-          value={areaFrontale}
-          onChangeText={setAreaFrontale}
-          placeholder={t('areaFrontale_placeholder')}
-          placeholderTextColor={currentTheme.placeHolderColor}
-        />
-
-        <Text style={dynamicStyles.label}>{t('trazione')}</Text>
-        <Picker
-          selectedValue={trazione}
-          onValueChange={(itemValue) => setTrazione(itemValue)}
-        >
-          <Picker.Item
-            label={t('fwd')}
-            value='FWD'
-            color={dynamicStyles.text.color as string}
+        <TouchableOpacity onPress={toggleTheme}>
+          <Feather
+            name={colorScheme === 'dark' ? 'moon' : 'sun'}
+            size={32}
+            color={dynamicStyles.expoIcon.color}
           />
-          <Picker.Item
-            label={t('rwd')}
-            value='RWD'
-            color={dynamicStyles.text.color as string}
-          />
-          <Picker.Item
-            label={t('awd')}
-            value='AWD'
-            color={dynamicStyles.text.color as string}
-          />
-        </Picker>
+        </TouchableOpacity>
+      </View>
 
+      {/* Input Fields */}
+      <View style={styles.inputsWrapper}>
+        {renderInputField('cv', cv, setCv, 'cv')}
+        {renderInputField('kg', kg, setKg, 'kg')}
+        {renderInputField('efficienza', efficienza, setEfficienza, 'efficienza')}
+        {renderInputField('densitaAria', densitaAria, setDensitaAria, 'densitaAria')}
+        {renderInputField('cd', cd, setCd, 'cd')}
+        {renderInputField('cr', cr, setCr, 'cr')}
+        {renderInputField('areaFrontale', areaFrontale, setAreaFrontale, 'areaFrontale')}
+
+        {/* Traction Picker */}
+        <View style={styles.inputGroup}>
+          <View style={styles.labelContainer}>
+            <Text style={dynamicStyles.label}>{t('trazione')}</Text>
+            <TouchableOpacity onPress={() => setSelectedHelp(selectedHelp === 'trazione' ? null : 'trazione')}>
+              <Feather name="help-circle" size={16} color={currentTheme.text} style={styles.helpIcon} />
+            </TouchableOpacity>
+          </View>
+          <Picker
+            selectedValue={trazione}
+            onValueChange={setTrazione}
+            dropdownIconColor={currentTheme.text}
+          >
+            {['FWD', 'RWD', 'AWD'].map((type) => (
+              <Picker.Item
+                key={type}
+                label={t(type.toLowerCase())}
+                value={type}
+                color={dynamicStyles.text.color as string}
+              />
+            ))}
+          </Picker>
+          {selectedHelp === 'trazione' && <Text style={styles.helpText}>{helpMessages.trazione}</Text>}
+        </View>
+
+        {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.buttonWhite}
-            onPress={handleCalculate}
+            style={[styles.button, buttonStyle]}
+            onPress={() => {
+              if (!requiredFieldsFilled) {
+                setShowError(true);
+                return;
+              }
+              setShowError(false);
+              handleCalculate(); 
+            }}
+            disabled={!requiredFieldsFilled}
           >
-            <Text>{t('calcola')}</Text>
+            <Text style={{ color: !requiredFieldsFilled ? '#999' : '#000' }}>{t('calcola')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.buttonBlue} onPress={handleReset}>
-            <Text style={{ color: 'white', textAlign: 'center' }}>
-              {t('reset')}
-            </Text>
+          <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={() => {
+            handleReset();
+          }}>
+            <Text style={styles.resetButtonText}>{t('reset')}</Text>
           </TouchableOpacity>
         </View>
 
-        {result.time0to100 && (
-          <Text style={styles.resultText}>
-            {t('tempo')} {result.time0to100} {t('seconds')}
-          </Text>
+        {showError && (
+          <Text style={styles.errorText}>{t('error_fields')}</Text>
         )}
 
-        {graphData.length > 0 && (
-          <View>
-            <LineChart
-              data={{
-                labels: graphData
-                  .filter((d, index) => index % 10 === 0)
-                  .map((d) => `${d.speed}`),
-                datasets: [{ data: graphData.map((d) => d.time) }],
-              }}
-              width={320}
-              height={240}
-              yAxisSuffix=' s'
-              chartConfig={{
-                backgroundColor: '#ffffff',
-                backgroundGradientFrom: '#ffffff',
-                backgroundGradientTo: '#ffffff',
-                decimalPlaces: 2,
-                color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                propsForDots: {
-                  r: '0.1',
-                  strokeWidth: '2',
-                  stroke: '#000',
-                },
-                style: {
-                  paddingTop: '5%',
-                  paddingBottom: '5%',
-                },
-              }}
-              bezier
-              style={styles.chart}
-              fromZero
-            />
-          </View>
-        )}
+{/* Results Section */}
+{result.time0to100 && (
+  <Text style={styles.resultText}>
+    {t('tempo')} {result.time0to100} {t('seconds')}
+  </Text>
+)}
 
-        {result.time0to100 && (
-          <View style={styles.additionalOutput}>
-            <Text style={styles.outputText}>
-              {t('power_kgcv')}: {(kg / cv).toFixed(2)} CV/Kg
-            </Text>
-            <Text style={styles.outputText}>
-              {t('power')}: {(cv / (kg / 1000)).toFixed(2)} CV/t
-            </Text>
-            <Text style={styles.outputText}>
-              {t('acceleration')}:{' '}
-              {(27.78 / parseFloat(result.time0to100)).toFixed(2)} m/s²
-            </Text>
-            <Text style={styles.outputText}>
-              {t('distance')}:{' '}
-              {(
-                0.5 *
-                (27.78 / parseFloat(result.time0to100)) *
-                Math.pow(parseFloat(result.time0to100), 2)
-              ).toFixed(2)}{' '}
-              meters
-            </Text>
-          </View>
-        )}
+{graphData.length > 0 && (
+  <View>
+    <LineChart
+      data={{
+        labels: graphData
+          .filter((d, index) => index % 10 === 0)
+          .map((d) => `${d.speed}`),
+        datasets: [{ data: graphData.map((d) => d.time) }],
+      }}
+      width={320}
+      height={240}
+      yAxisSuffix=' s'
+      chartConfig={{
+        backgroundColor: '#ffffff',
+        backgroundGradientFrom: '#ffffff',
+        backgroundGradientTo: '#ffffff',
+        decimalPlaces: 2,
+        color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
+        labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+        propsForDots: {
+          r: '0.1',
+          strokeWidth: '2',
+          stroke: '#000',
+        },
+        style: {
+          paddingTop: '5%',
+          paddingBottom: '5%',
+        },
+      }}
+      bezier
+      style={styles.chart}
+      fromZero
+    />
+  </View>
+)}
+
+{result.time0to100 && (
+  <View style={styles.additionalOutput}>
+    <Text style={styles.outputText}>
+      {t('power_kgcv')}: {(kg / cv).toFixed(2)} CV/Kg
+    </Text>
+    <Text style={styles.outputText}>
+      {t('power')}: {(cv / (kg / 1000)).toFixed(2)} CV/t
+    </Text>
+    <Text style={styles.outputText}>
+      {t('acceleration')}:{' '}
+      {(27.78 / parseFloat(result.time0to100)).toFixed(2)} m/s²
+    </Text>
+    <Text style={styles.outputText}>
+      {t('distance')}:{' '}
+      {(
+        0.5 *
+        (27.78 / parseFloat(result.time0to100)) *
+        Math.pow(parseFloat(result.time0to100), 2)
+      ).toFixed(2)}{' '}
+      meters
+    </Text>
+  </View>
+)}
+
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-  },
-  row: {
+  headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    padding: 20,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  logo: {
+    width: 50,
+    height: 50,
+    marginRight: 10,
   },
-  inputContainer: {
+  title: {
+    fontSize: 24,
+    fontWeight: '300',
+    color: '#004aad',
+  },
+  controlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginVertical: 15,
+  },
+  languageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  inputsWrapper: {
     width: '90%',
-    marginTop: 0,
+    marginTop: 10,
   },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingLeft: 10,
+  inputGroup: {
+    marginBottom: 15,
+  },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  helpIcon: {
+    marginLeft: 5,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 20,
+    gap: 10,
+    marginVertical: 20,
+  },
+  button: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
   },
   buttonWhite: {
-    backgroundColor: 'white',
-    padding: 10,
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#ccc',
-    flex: 0.45,
-    alignItems: 'center',
   },
-  buttonBlue: {
+  buttonDisabled: {
+    backgroundColor: '#e0e0e0',
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  resetButton: {
     backgroundColor: '#004aad',
-    padding: 10,
-    flex: 0.45,
-    alignItems: 'center',
+  },
+  resetButtonText: {
+    color: 'white',
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: -10,
+    marginBottom: 10,
   },
   resultText: {
     fontSize: 18,
-    marginTop: 20,
+    textAlign: 'center',
+    marginVertical: 15,
+    color: '#004aad',
   },
   chart: {
-    marginVertical: 10,
+    marginVertical: 15,
+    borderRadius: 8,
+  },
+  metricsContainer: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+  },
+  metricText: {
+    fontSize: 16,
+    marginVertical: 5,
   },
   additionalOutput: {
     marginTop: 10,
@@ -461,31 +465,5 @@ const styles = StyleSheet.create({
   outputText: {
     fontSize: 16,
     marginBottom: 5,
-  },
-  Text: {
-    fontSize: 25,
-    marginTop: 30,
-    fontWeight: 'light',
-    fontStyle: 'italic',
-    color: '#004aad',
-    borderColor: 'black',
-  },
-  languageSwitcher: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  languageText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  imageContainer: {
-    marginTop: 30,
-    marginRight: 5,
-  },
-  icon: {
-    width: 50,
-    height: 50,
-    resizeMode: 'contain',
   },
 });
