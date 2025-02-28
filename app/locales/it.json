@@ -24,6 +24,15 @@
     "power_kgcv": "Peso/Potenza",
     "power": "Potenza specifica",
     "acceleration": "Accelerazione media",
-    "distance": "Distanza 0-100 km/h"
-  }
+    "distance": "Distanza 0-100 km/h",
+    "help_cv": "Potenza del motore in cavalli (1 CV = 735.5 Watt)",
+    "help_kg": "Peso del veicolo in chilogrammi incluso passeggeri e carico",
+    "help_efficienza": "Efficienza del gruppo propulsivo (tipicamente 0.7-0.9 per la maggior parte dei veicoli)",
+    "help_densitaAria": "Densità dell'aria calcolata con ρ = P/(R·T) dove P è pressione in Pascal, R = 287.05 J/(kg·K), T è temperatura in Kelvin",
+    "help_cd": "Coefficiente aerodinamico (0.25-0.45 per auto, 0.6-1.0 per camion)",
+    "help_cr": "Coefficiente di resistenza al rotolamento (0.01-0.02 per asfalto)",
+    "help_areaFrontale": "Area frontale in m² (tipicamente 2-2.5 m² per auto)",
+    "help_trazione": "Il tipo di trazione influenza distribuzione del peso e aderenza",
+    "error_fields": "Compila tutti i campi obbligatori (CV, KG, Area frontale)"
+}
   
