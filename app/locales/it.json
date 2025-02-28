@@ -20,7 +20,7 @@
     "awd": "AWD (Integrale)",
     "calcola": "Calcola",
     "reset": "Reset",
-    "tempo": "Tempo da 0 a 100 km/h:",
+    "tempo": "Tempo 0-100 km/h:",
     "power_kgcv": "Peso/Potenza",
     "power": "Potenza specifica",
     "acceleration": "Accelerazione media",
@@ -33,6 +33,8 @@
     "help_cr": "Coefficiente di resistenza al rotolamento (0.01-0.02 per asfalto)",
     "help_areaFrontale": "Area frontale in m² (tipicamente 2-2.5 m² per auto)",
     "help_trazione": "Il tipo di trazione influenza distribuzione del peso e aderenza",
-    "error_fields": "Compila tutti i campi obbligatori (CV, KG, Area frontale)"
+    "error_fields": "Compila tutti i campi obbligatori (CV, KG, Area frontale)",
+    "0-200 km/h": "Tempo 0-200 km/h",
+    "Velocità massima": "Velocità massima teorica"
 }
   
