@@ -224,11 +224,10 @@ export default function HomeScreen() {
           paddingHorizontal: 30,
         }}
       >
-        {/*Language selector, current language text is not displayed  */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={[dynamicStyles.languageText]}>{isEnglish && 'IT'}</Text>
+          <Text style={dynamicStyles.languageText}>IT</Text>
           <Switch value={isEnglish} onValueChange={handleLanguageToggle} />
-          <Text style={[dynamicStyles.languageText]}>{!isEnglish && 'EN'}</Text>
+          <Text style={dynamicStyles.languageText}>EN</Text>
         </View>
 
         {/* Day/night mode switch using expo icon //////////////////////////////*/}
