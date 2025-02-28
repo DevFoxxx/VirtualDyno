@@ -11,19 +11,8 @@ import {
   TextStyle,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
-import { useState, useEffect, useRef } from 'react';
-
 import Animated from 'react-native-reanimated';
 import { useState } from 'react';
-
 import { useTranslation } from 'react-i18next';
 import { LineChart } from 'react-native-chart-kit';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -77,42 +66,20 @@ export default function HomeScreen() {
       color: currentTheme.text,
     } as TextStyle,
     label: {
-      paddingBottom: 10,
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: 'bold',
       color: currentTheme.text,
     } as TextStyle,
     input: {
-      fontSize: 16,
-      height: 45,
-      borderColor: '#004aad',
+      height: 40,
+      borderColor: '#ccc',
       borderWidth: 1,
-      borderRadius: 6,
-      marginBottom: 30,
+      marginBottom: 10,
       paddingLeft: 10,
       color: currentTheme.text,
     },
     expoIcon: {
       color: currentTheme.tabIconSelected,
-    },
-    additionalOutput: {
-      marginTop: 10,
-      padding: 10,
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 5,
-      backgroundColor: currentTheme.background,
-      marginBottom: 20,
-    },
-    outputText: {
-      fontSize: 16,
-      marginBottom: 5,
-      color: currentTheme.text,
-    },
-    resultText: {
-      fontSize: 18,
-      marginTop: 20,
-      color: currentTheme.text,
     },
   };
 
@@ -180,11 +147,6 @@ export default function HomeScreen() {
     }
 
     setGraphData(data);
-
-    // scroll down to the graph when its generated, time delay is used to ensure graph is generated before it scrolls down
-    setTimeout(() => {
-      ref.current?.scrollToEnd();
-    }, 100);
   };
 
 
@@ -204,39 +166,6 @@ export default function HomeScreen() {
   // calculation of specific power and other metrics
   const powerW = parseFloat(cv) * 735.5;
 
-  //used to scroll all the way down to reveal the graph
-  const ref = useRef<ScrollView>(null);
-
-  return (
-    <ScrollView ref={ref} contentContainerStyle={dynamicStyles.container}>
-      <View style={dynamicStyles.container}>
-        <View style={styles.row}>
-          <Animated.View style={styles.imageContainer}>
-            <Image
-              source={require('../../assets/images/icon.png')}
-              style={styles.icon}
-            />
-          </Animated.View>
-          <Animated.Text style={styles.Text}>{t('title')}</Animated.Text>
-        </View>
-      </View>
-
-      <View
-        style={{
-          marginVertical: 20,
-          marginBottom: 40,
-          width: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 30,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={dynamicStyles.languageText}>IT</Text>
-          <Switch value={isEnglish} onValueChange={handleLanguageToggle} />
-          <Text style={dynamicStyles.languageText}>EN</Text>
-          
   // Render input field with help icon
   const renderInputField = (labelKey: string, state: string, setter: any, helpKey: string) => (
     <View style={styles.inputGroup}>
@@ -276,31 +205,14 @@ export default function HomeScreen() {
             setIsEnglish(!isEnglish);
           }} />
           <Text style={dynamicStyles.text}>EN</Text>
-
         </View>
 
         <TouchableOpacity onPress={toggleTheme}>
-
-          {colorScheme === 'dark' ? (
-            <Feather
-              name='moon'
-              size={36}
-              color={dynamicStyles.expoIcon.color}
-            />
-          ) : (
-            <Feather
-              name='sun'
-              size={36}
-              color={dynamicStyles.expoIcon.color}
-            />
-          )}
-
           <Feather
             name={colorScheme === 'dark' ? 'moon' : 'sun'}
             size={32}
             color={dynamicStyles.expoIcon.color}
           />
-
         </TouchableOpacity>
       </View>
 
@@ -341,100 +253,6 @@ export default function HomeScreen() {
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-
-          <TouchableOpacity style={styles.buttonBlue} onPress={handleCalculate}>
-            <Text
-              style={{
-                color: '#ECEDEE',
-                textAlign: 'center',
-                fontWeight: 'bold',
-                fontSize: 16,
-              }}
-            >
-              {t('calcola')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.buttonWhite} onPress={handleReset}>
-            <Text
-              style={{
-                color: '#004aad',
-                textAlign: 'center',
-                fontWeight: 'bold',
-                fontSize: 16,
-              }}
-            >
-              {t('reset')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {result.time0to100 && (
-          <Text style={dynamicStyles.resultText}>
-            {t('tempo')} {result.time0to100} {t('seconds')}
-          </Text>
-        )}
-
-        {graphData.length > 0 && (
-          <View>
-            <LineChart
-              data={{
-                labels: graphData
-                  .filter((d, index) => index % 10 === 0)
-                  .map((d) => `${d.speed}`),
-                datasets: [{ data: graphData.map((d) => d.time) }],
-              }}
-              width={320}
-              height={240}
-              yAxisSuffix=' s'
-              chartConfig={{
-                backgroundColor: currentTheme.background,
-                backgroundGradientFrom: currentTheme.background,
-                backgroundGradientTo: currentTheme.background,
-                decimalPlaces: 2,
-                color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-                propsForDots: {
-                  r: '0.1',
-                  strokeWidth: '2',
-                  stroke: currentTheme.text,
-                },
-                style: {
-                  paddingTop: '5%',
-                  paddingBottom: '5%',
-                },
-              }}
-              bezier
-              style={styles.chart}
-              fromZero
-            />
-          </View>
-        )}
-
-        {result.time0to100 && (
-          <View style={dynamicStyles.additionalOutput}>
-            <Text style={dynamicStyles.outputText}>
-              {t('power_kgcv')}: {(kg / cv).toFixed(2)} CV/Kg
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('power')}: {(cv / (kg / 1000)).toFixed(2)} CV/t
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('acceleration')}:{' '}
-              {(27.78 / parseFloat(result.time0to100)).toFixed(2)} m/s²
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('distance')}:{' '}
-              {(
-                0.5 *
-                (27.78 / parseFloat(result.time0to100)) *
-                Math.pow(parseFloat(result.time0to100), 2)
-              ).toFixed(2)}{' '}
-              meters
-            </Text>
-          </View>
-        )}
-
           <TouchableOpacity
             style={[styles.button, buttonStyle]}
             onPress={() => {
@@ -594,15 +412,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonWhite: {
-    backgroundColor: 'white',
-    padding: 10,
-    height: 45,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 50,
-    flex: 0.45,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#ccc',
   },
@@ -613,12 +423,6 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     backgroundColor: '#004aad',
-    padding: 10,
-    height: 45,
-    borderRadius: 50,
-    flex: 0.45,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   resetButtonText: {
     color: 'white',
