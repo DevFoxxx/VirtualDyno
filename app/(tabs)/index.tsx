@@ -82,9 +82,9 @@ export default function HomeScreen() {
 
     input: {
       fontSize: 16,
-      height: 60,
+      height: 45,
       borderColor: '#0a7ea4',
-      borderWidth: 2,
+      borderWidth: 1,
       borderRadius: 6,
       marginBottom: 30,
       paddingLeft: 10,
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   buttonWhite: {
     backgroundColor: 'white',
     padding: 10,
-    height: 60,
+    height: 45,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 50,
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   buttonBlue: {
     backgroundColor: '#004aad',
     padding: 10,
-    height: 60,
+    height: 45,
     borderRadius: 50,
     flex: 0.45,
     alignItems: 'center',
