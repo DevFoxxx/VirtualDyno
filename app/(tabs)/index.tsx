@@ -83,7 +83,7 @@ export default function HomeScreen() {
     input: {
       fontSize: 16,
       height: 45,
-      borderColor: '#0a7ea4',
+      borderColor: '#004aad',
       borderWidth: 1,
       borderRadius: 6,
       marginBottom: 30,
@@ -105,6 +105,11 @@ export default function HomeScreen() {
     outputText: {
       fontSize: 16,
       marginBottom: 5,
+      color: currentTheme.text,
+    },
+    resultText: {
+      fontSize: 18,
+      marginTop: 20,
       color: currentTheme.text,
     },
   };
@@ -366,7 +371,7 @@ export default function HomeScreen() {
         </View>
 
         {result.time0to100 && (
-          <Text style={styles.resultText}>
+          <Text style={dynamicStyles.resultText}>
             {t('tempo')} {result.time0to100} {t('seconds')}
           </Text>
         )}
@@ -388,10 +393,8 @@ export default function HomeScreen() {
                 backgroundGradientFrom: currentTheme.background,
                 backgroundGradientTo: currentTheme.background,
                 decimalPlaces: 2,
-                color: (opacity = 1) =>
-                  `rgba(${currentTheme.textRGB}, ${opacity})`,
-                labelColor: (opacity = 1) =>
-                  `rgba(${currentTheme.textRGB}, ${opacity})`,
+                color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
                 propsForDots: {
                   r: '0.1',
                   strokeWidth: '2',
