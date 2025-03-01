@@ -26,6 +26,7 @@ import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Feather from '@expo/vector-icons/Feather';
+import PopUpHelpText from '@/components/popUpHelpText';
 
 export default function HomeScreen() {
   // shared value for animation
@@ -49,6 +50,11 @@ export default function HomeScreen() {
 
   const { colorScheme, toggleTheme } = useColorScheme();
   const currentTheme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  // used for pop ups when question icon is clicked
+  const [modalVisible, setModalVisible] = useState(false);
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
+
   // Toggle the system theme
   const handleThemeToggle = (value: boolean) => {
     toggleTheme();
@@ -248,8 +254,18 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
       {/* ///////////////////////////////////////////////// */}
+
       <View style={styles.inputContainer}>
-        <Text style={dynamicStyles.label}>{t('cv')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={dynamicStyles.label}>{t('cv')}</Text>
+          {/*this is the question mark button that opens up the pop up message, modify 'message' to describe each label */}
+          <PopUpHelpText
+            message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris elementum dignissim justo, vel accumsan justo sodales vitae. Quisque nunc sapien, molestie ut sapien a, suscipit egestas nisl.'
+            textColor={currentTheme.text}
+            backgroundColor={currentTheme.background}
+            iconColor={dynamicStyles.expoIcon.color}
+          />
+        </View>
         <TextInput
           style={dynamicStyles.input}
           keyboardType='numeric'
@@ -259,7 +275,15 @@ export default function HomeScreen() {
           placeholderTextColor={currentTheme.placeHolderColor}
         />
 
-        <Text style={dynamicStyles.label}>{t('kg')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={dynamicStyles.label}>{t('kg')}</Text>
+          <PopUpHelpText
+            message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris elementum dignissim justo, vel accumsan justo sodales vitae. Quisque nunc sapien, molestie ut sapien a, suscipit egestas nisl.'
+            textColor={currentTheme.text}
+            backgroundColor={currentTheme.background}
+            iconColor={dynamicStyles.expoIcon.color}
+          />
+        </View>
         <TextInput
           style={dynamicStyles.input}
           keyboardType='numeric'
@@ -269,7 +293,15 @@ export default function HomeScreen() {
           placeholderTextColor={currentTheme.placeHolderColor}
         />
 
-        <Text style={dynamicStyles.label}>{t('efficienza')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={dynamicStyles.label}>{t('efficienza')}</Text>
+          <PopUpHelpText
+            message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris elementum dignissim justo, vel accumsan justo sodales vitae. Quisque nunc sapien, molestie ut sapien a, suscipit egestas nisl.'
+            textColor={currentTheme.text}
+            backgroundColor={currentTheme.background}
+            iconColor={dynamicStyles.expoIcon.color}
+          />
+        </View>
         <TextInput
           style={dynamicStyles.input}
           keyboardType='numeric'
@@ -279,7 +311,15 @@ export default function HomeScreen() {
           placeholderTextColor={currentTheme.placeHolderColor}
         />
 
-        <Text style={dynamicStyles.label}>{t('densitaAria')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={dynamicStyles.label}>{t('densitaAria')}</Text>
+          <PopUpHelpText
+            message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris elementum dignissim justo, vel accumsan justo sodales vitae. Quisque nunc sapien, molestie ut sapien a, suscipit egestas nisl.'
+            textColor={currentTheme.text}
+            backgroundColor={currentTheme.background}
+            iconColor={dynamicStyles.expoIcon.color}
+          />
+        </View>
         <TextInput
           style={dynamicStyles.input}
           keyboardType='numeric'
@@ -289,7 +329,15 @@ export default function HomeScreen() {
           placeholderTextColor={currentTheme.placeHolderColor}
         />
 
-        <Text style={dynamicStyles.label}>{t('cd')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={dynamicStyles.label}>{t('cd')}</Text>
+          <PopUpHelpText
+            message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris elementum dignissim justo, vel accumsan justo sodales vitae. Quisque nunc sapien, molestie ut sapien a, suscipit egestas nisl.'
+            textColor={currentTheme.text}
+            backgroundColor={currentTheme.background}
+            iconColor={dynamicStyles.expoIcon.color}
+          />
+        </View>
         <TextInput
           style={dynamicStyles.input}
           keyboardType='numeric'
@@ -299,7 +347,15 @@ export default function HomeScreen() {
           placeholderTextColor={currentTheme.placeHolderColor}
         />
 
-        <Text style={dynamicStyles.label}>{t('cr')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={dynamicStyles.label}>{t('cr')}</Text>
+          <PopUpHelpText
+            message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris elementum dignissim justo, vel accumsan justo sodales vitae. Quisque nunc sapien, molestie ut sapien a, suscipit egestas nisl.'
+            textColor={currentTheme.text}
+            backgroundColor={currentTheme.background}
+            iconColor={dynamicStyles.expoIcon.color}
+          />
+        </View>
         <TextInput
           style={dynamicStyles.input}
           keyboardType='numeric'
@@ -309,7 +365,15 @@ export default function HomeScreen() {
           placeholderTextColor={currentTheme.placeHolderColor}
         />
 
-        <Text style={dynamicStyles.label}>{t('areaFrontale')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={dynamicStyles.label}>{t('areaFrontale')}</Text>
+          <PopUpHelpText
+            message='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris elementum dignissim justo, vel accumsan justo sodales vitae. Quisque nunc sapien, molestie ut sapien a, suscipit egestas nisl.'
+            textColor={currentTheme.text}
+            backgroundColor={currentTheme.background}
+            iconColor={dynamicStyles.expoIcon.color}
+          />
+        </View>
         <TextInput
           style={dynamicStyles.input}
           keyboardType='numeric'
