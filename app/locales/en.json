@@ -33,6 +33,8 @@
     "help_cr": "Rolling resistance coefficient (0.01-0.02 for asphalt)",
     "help_areaFrontale": "Frontal area in m² (typically 2-2.5 m² for cars)",
     "help_trazione": "Drive type affects weight distribution and traction",
-    "error_fields": "Please fill all required fields (CV, KG, Frontal Area)"
+    "error_fields": "Please fill all required fields (CV, KG, Frontal Area)",
+    "top_speed": "Theoretical top speed",
+    "risultati": "Simulation results"
 }
   

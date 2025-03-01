@@ -39,7 +39,7 @@ export default function HomeScreen() {
   const [cr, setCr] = useState('0.015');
   const [areaFrontale, setAreaFrontale] = useState('');
   const [trazione, setTrazione] = useState('FWD');
-  const [result, setResult] = useState({ time0to100: '' });
+  const [result, setResult] = useState({ time0to100: '', topSpeed: ""});
   const [graphData, setGraphData] = useState([]);
   const [isEnglish, setIsEnglish] = useState(i18n.language === 'en');
 
@@ -104,8 +104,7 @@ export default function HomeScreen() {
       color: currentTheme.text,
     },
     resultText: {
-      fontSize: 18,
-      marginTop: 20,
+      fontSize: 16,
       color: currentTheme.text,
     },
     languageText: {
@@ -148,6 +147,34 @@ export default function HomeScreen() {
     return time.toFixed(2);
   };
 
+  const calculateTopSpeed = () => {
+    const powerW = parseFloat(cv) * 735.5; 
+    const eta = parseFloat(efficienza); 
+    const mass = parseFloat(kg); 
+    const rho = parseFloat(densitaAria); 
+    const cdValue = parseFloat(cd); 
+    const crValue = parseFloat(cr); 
+    const area = parseFloat(areaFrontale); 
+  
+    const powerAvailable = powerW * eta; 
+    let vMin = 38; 
+    let vMax = 500; 
+    let vMid;
+  
+    while (vMax - vMin > 0.1) {
+      vMid = (vMin + vMax) / 2;
+      const powerRequired = 0.5 * rho * cdValue * area * Math.pow(vMid / 3.6, 3) + crValue * mass * 9.81 * (vMid / 3.6);
+  
+      if (powerRequired < powerAvailable) {
+        vMin = vMid;
+      } else {
+        vMax = vMid;
+      }
+    }
+  
+    return vMid.toFixed(2);
+  };  
+
   const handleCalculate = () => {
     if (!requiredFieldsFilled) {
       setShowError(true);
@@ -171,6 +198,9 @@ export default function HomeScreen() {
     }
 
     setGraphData(data);
+
+    const topSpeed = calculateTopSpeed();
+    setResult((prev) => ({ ...prev, topSpeed }));
 
     setTimeout(() => {
       ref.current?.scrollToEnd();
@@ -253,10 +283,10 @@ export default function HomeScreen() {
 
         <View style={styles.inputGroup}>
           <View style={styles.labelContainer}>
-            <Text style={dynamicStyles.label}>{t('trazione')}</Text>
             <TouchableOpacity onPress={() => setSelectedHelp(selectedHelp === 'trazione' ? null : 'trazione')}>
               <Feather name="help-circle" size={16} color={currentTheme.text} style={styles.helpIcon} />
             </TouchableOpacity>
+            <Text style={dynamicStyles.label}> {t('trazione')}</Text>
           </View>
           <Picker
             selectedValue={trazione}
@@ -291,9 +321,15 @@ export default function HomeScreen() {
 
         {showError && <Text style={styles.errorText}>{t('error_fields')}</Text>}
 
+        <Text style={styles.risultati}>{t('risultati')}</Text>
         {result.time0to100 && (
           <Text style={dynamicStyles.resultText}>
             {t('tempo')} {result.time0to100} {t('seconds')}
+          </Text>
+        )}
+        {result.topSpeed && (
+          <Text style={dynamicStyles.resultText}>
+            {t("top_speed")}: {result.topSpeed} km/h
           </Text>
         )}
 
@@ -376,6 +412,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '500',
     color: '#004aad',
+  },
+  risultati: {
+    fontSize: 24,
+    color: '#004aad',
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: 'center'
   },
   controlsContainer: {
     flexDirection: 'row', 
@@ -469,7 +512,7 @@ const styles = StyleSheet.create({
   },
   resultText: {
     fontSize: 18,
-    textAlign: 'center',
+    textAlign: 'left',
     marginVertical: 15,
     color: '#004aad',
   },
