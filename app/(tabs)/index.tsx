@@ -83,7 +83,6 @@ export default function HomeScreen() {
       borderColor: '#004aad',
       borderWidth: 1,
       borderRadius: 6,
-      marginBottom: 30,
       paddingLeft: 10,
       color: currentTheme.text,
     },
@@ -198,10 +197,10 @@ export default function HomeScreen() {
   ) => (
     <View style={styles.inputGroup}>
       <View style={styles.labelContainer}>
-        <Text style={dynamicStyles.label}>{t(labelKey)}</Text>
         <TouchableOpacity onPress={() => setSelectedHelp(selectedHelp === helpKey ? null : helpKey)}>
           <Feather name="help-circle" size={16} color={currentTheme.text} style={styles.helpIcon} />
         </TouchableOpacity>
+        <Text style={dynamicStyles.label}> {t(labelKey)}</Text>
       </View>
       <TextInput
         style={dynamicStyles.input}
@@ -234,7 +233,7 @@ export default function HomeScreen() {
           <Text style={dynamicStyles.languageText}>EN</Text>
         </View>
 
-        <TouchableOpacity onPress={toggleTheme}>
+        <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
           <Feather
             name={colorScheme === 'dark' ? 'moon' : 'sun'}
             size={32}
@@ -375,24 +374,29 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '300',
+    fontWeight: '500',
     color: '#004aad',
   },
   controlsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginVertical: 15,
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: 10,
   },
   languageContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+  },
+  themeToggle: {
+    marginLeft: 200,
+    color: '#004aad',
+    borderRadius: 100,
+    padding: 5,
+    borderColor: 'white'
   },
   inputsWrapper: {
     width: '90%',
-    marginTop: 10,
+    marginTop: 10
   },
   inputGroup: {
     marginBottom: 15,
@@ -404,6 +408,7 @@ const styles = StyleSheet.create({
   },
   helpIcon: {
     marginLeft: 5,
+    paddingBottom: 10,
   },
   helpText: {
     fontSize: 12,
@@ -435,8 +440,14 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     backgroundColor: '#e0e0e0',
+    padding: 10,
+    height: 45,
     borderWidth: 1,
     borderColor: '#ccc',
+    borderRadius: 50,
+    flex: 0.45,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   resetButton: {
     backgroundColor: '#004aad',
