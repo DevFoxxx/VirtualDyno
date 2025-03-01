@@ -21,6 +21,7 @@
     "calcola": "CALCOLA",
     "reset": "RESETTA",
     "tempo": "Tempo da 0 a 100 km/h:",
+    "power_kw": "Potenza in kW",
     "power_kgcv": "Peso/Potenza",
     "power": "Potenza specifica",
     "acceleration": "Accelerazione media",
@@ -35,6 +36,6 @@
     "help_trazione": "Il tipo di trazione influenza distribuzione del peso e aderenza",
     "error_fields": "Compila tutti i campi obbligatori (CV, KG, Area frontale)",
     "top_speed": "Velocità massima teorica",
-    "risultati": "Risultati simulazione"
+    "risultati": "Risultati simulazione",
 }
   

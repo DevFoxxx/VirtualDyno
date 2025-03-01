@@ -39,8 +39,8 @@ export default function HomeScreen() {
   const [cr, setCr] = useState('0.015');
   const [areaFrontale, setAreaFrontale] = useState('');
   const [trazione, setTrazione] = useState('FWD');
-  const [result, setResult] = useState({ time0to100: '', topSpeed: ""});
-  const [graphData, setGraphData] = useState([]);
+  const [result, setResult] = useState({ time0to100: '', topSpeed: "" });
+  const [graphData, setGraphData] = useState<{ speed: number; time: number }[]>([]);
   const [isEnglish, setIsEnglish] = useState(i18n.language === 'en');
 
   const requiredFieldsFilled = cv && kg && areaFrontale;
@@ -60,6 +60,12 @@ export default function HomeScreen() {
     areaFrontale: t('help_areaFrontale'),
     trazione: t('help_trazione'),
   };
+
+  // Stato per memorizzare i dati del grafico della velocità massima
+  const [topSpeedGraphData, setTopSpeedGraphData] = useState<{
+    labels: string[];
+    datasets: { data: number[] }[];
+  }>({ labels: [], datasets: [] });
 
   const dynamicStyles = {
     container: {
@@ -148,32 +154,54 @@ export default function HomeScreen() {
   };
 
   const calculateTopSpeed = () => {
-    const powerW = parseFloat(cv) * 735.5; 
-    const eta = parseFloat(efficienza); 
-    const mass = parseFloat(kg); 
-    const rho = parseFloat(densitaAria); 
-    const cdValue = parseFloat(cd); 
-    const crValue = parseFloat(cr); 
-    const area = parseFloat(areaFrontale); 
-  
-    const powerAvailable = powerW * eta; 
-    let vMin = 38; 
-    let vMax = 500; 
+    const powerW = parseFloat(cv) * 735.5;
+    const eta = parseFloat(efficienza);
+    const mass = parseFloat(kg);
+    const rho = parseFloat(densitaAria);
+    const cdValue = parseFloat(cd);
+    const crValue = parseFloat(cr);
+    const area = parseFloat(areaFrontale);
+
+    const powerAvailable = powerW * eta;
+    let vMin = 38;
+    let vMax = 500;
     let vMid;
-  
+
     while (vMax - vMin > 0.1) {
       vMid = (vMin + vMax) / 2;
       const powerRequired = 0.5 * rho * cdValue * area * Math.pow(vMid / 3.6, 3) + crValue * mass * 9.81 * (vMid / 3.6);
-  
+
       if (powerRequired < powerAvailable) {
         vMin = vMid;
       } else {
         vMax = vMid;
       }
     }
-  
+
+    const labels: string[] = [];
+    const powerRequiredData: number[] = [];
+    const powerAvailableData: number[] = [];
+
+    for (let speed = 0; speed <= vMid; speed += 1) {
+      const powerRequired = 0.5 * rho * cdValue * area * Math.pow(speed / 3.6, 3) + crValue * mass * 9.81 * (speed / 3.6);
+      powerRequiredData.push(powerRequired);
+      powerAvailableData.push(powerAvailable);
+
+      if (speed % 50 === 0) {
+        labels.push(speed.toFixed(0));
+      }
+    }
+
+    setTopSpeedGraphData({
+      labels,
+      datasets: [
+        { data: powerRequiredData.map((watt) => watt / 1000) },
+        { data: powerAvailableData.map((watt) => watt / 1000) }, 
+      ],
+    });
+
     return vMid.toFixed(2);
-  };  
+  };
 
   const handleCalculate = () => {
     if (!requiredFieldsFilled) {
@@ -181,9 +209,9 @@ export default function HomeScreen() {
       return;
     }
     setShowError(false);
-    
+
     const time0to100 = calculateAccelerationTime(100);
-    setResult({ time0to100 });
+    setResult({ time0to100, topSpeed: "" });
 
     const data = [];
     for (let speed = 0; speed <= 100; speed += 1) {
@@ -215,8 +243,9 @@ export default function HomeScreen() {
     setCd('0.30');
     setCr('0.015');
     setAreaFrontale('');
-    setResult({ time0to100: '' });
+    setResult({ time0to100: '', topSpeed: "" });
     setGraphData([]);
+    setTopSpeedGraphData({ labels: [], datasets: [] });
   };
 
   const renderInputField = (
@@ -327,11 +356,6 @@ export default function HomeScreen() {
             {t('tempo')} {result.time0to100} {t('seconds')}
           </Text>
         )}
-        {result.topSpeed && (
-          <Text style={dynamicStyles.resultText}>
-            {t("top_speed")}: {result.topSpeed} km/h
-          </Text>
-        )}
 
         {graphData.length > 0 && (
           <View>
@@ -369,8 +393,55 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {result.topSpeed && (
+          <Text style={dynamicStyles.resultText}>
+            {t("top_speed")}: {result.topSpeed} km/h
+          </Text>
+        )}
+
+        {result.topSpeed && (
+          <View>
+            <LineChart
+              data={{
+                labels: topSpeedGraphData.labels,
+                datasets: topSpeedGraphData.datasets,
+              }}
+              width={320}
+              height={240}
+              yAxisSuffix=" kW"
+              chartConfig={{
+                backgroundColor: currentTheme.background,
+                backgroundGradientFrom: currentTheme.background,
+                backgroundGradientTo: currentTheme.background,
+                decimalPlaces: 1,
+                color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
+                propsForDots: {
+                  r: (value, index) => (index % 50 === 0 ? 4 : 0),
+                  strokeWidth: 2,
+                  stroke: "#004aad",
+                },
+                propsForBackgroundLines: {
+                  strokeWidth: 0.25,
+                  strokeDasharray: "",
+                },
+                style: {
+                  paddingTop: '5%',
+                  paddingBottom: '5%',
+                },
+                strokeWidth: 1,
+              }}
+              bezier
+              style={styles.chart}
+            />
+          </View>
+        )}
+
         {result.time0to100 && (
           <View style={dynamicStyles.additionalOutput}>
+            <Text style={dynamicStyles.outputText}>
+              {t('power_kw')}: {(parseFloat(cv) * 0.7355).toFixed(2)} kW
+            </Text>
             <Text style={dynamicStyles.outputText}>
               {t('power_kgcv')}: {(kg / cv).toFixed(2)} CV/Kg
             </Text>
@@ -421,14 +492,14 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   controlsContainer: {
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 10,
   },
   languageContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   themeToggle: {
     marginLeft: 200,
@@ -532,5 +603,22 @@ const styles = StyleSheet.create({
   outputText: {
     fontSize: 16,
     marginBottom: 5,
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10,
+    gap: 20,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  legendColor: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
   },
 });
