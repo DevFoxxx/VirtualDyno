@@ -21,7 +21,7 @@
     "calcola": "CALCULATE",
     "reset": "RESET",
     "tempo": "0-100 km/h Time:",
-    "power_kw": "Powet in Kw",
+    "power_kw": "Power in Kw",
     "power_kgcv": "Weight/Power",
     "power": "Power per Ton",
     "acceleration": "Average Acceleration",
@@ -37,5 +37,12 @@
     "error_fields": "Please fill all required fields (CV, KG, Frontal Area)",
     "top_speed": "Theoretical top speed",
     "risultati": "Simulation results",
+    "minRPM": "Min RPM",
+    "maxRPM": "Max RPM",
+    "minRPM_placeholder": "Enter the minimum RPM",
+    "maxRPM_placeholder": "Enter the maximum RPM",
+    "coppia_massima": "Max torque",
+    "help_minrpm": "Number of revolutions per minute (RPM) at which the engine starts delivering power",
+    "help_maxrpm": "Number of revolutions per minute (RPM) at which the engine can operate before reaching the safety limit or engine efficiency"
 }
   

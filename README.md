@@ -5,7 +5,7 @@
 
 ## Screenshot (development phase, light/dark theme)
  
-![alt text](image-1.png) ![alt text](image-2.png) ![alt text](image-3.png)
+ ![alt text](image.png)![alt text](image-1.png)![alt text](image-2.png)![alt text](image-3.png)![alt text](image-4.png)![alt text](image-5.png)
 
 # 🇬🇧 EN 
 ## Description
@@ -51,15 +51,13 @@ npx expo start
 
 ## Upcoming Developments
 1. 0-200 Km/h time + graph
-2. Estimated top speed
-3. Torque calculation in Nm
-4. Power distribution analysis across different speed ranges
-5. Performance simulation on various terrain types (asphalt, snow, mud, etc.)
-6. Aerodynamic parameter optimization based on customizable vehicle configurations
-7. Support for advanced vehicle configurations, such as hybrid or electric models
-8. Improvement of simulations under variable weather conditions (rain, wind, temperature)
-9. Data storage for easy access and comparison over time
-10. Data sharing with other users or platforms for collaboration and analysis
+2. Power distribution analysis across different speed ranges
+3. Performance simulation on various terrain types (asphalt, snow, mud, etc.)
+4. Aerodynamic parameter optimization based on customizable vehicle configurations
+5. Support for advanced vehicle configurations, such as hybrid or electric models
+6. Improvement of simulations under variable weather conditions (rain, wind, temperature)
+7. Data storage for easy access and comparison over time
+8. Data sharing with other users or platforms for collaboration and analysis
 
 ## Contributions
 If you want to contribute, you can create a pull request with your changes or report issues in the "Issues" section of the repository. We're currently looking for people willing to help with the following:
@@ -70,108 +68,6 @@ If you want to contribute, you can create a pull request with your changes or re
 4. Assisting in the development of future updates
 
 This project aims to remain free and available for everyone.
-
-## Formulas Used
-
-The function `calculateAccelerationTime(targetSpeed)` estimates the **acceleration time** required to reach a given speed (in km/h) from a standstill.
-
-### Formula Breakdown:
-
-1. **Unit Conversion:**
-   - Convert speed from **km/h to m/s**:
-     \[
-     v_{final} = \frac{targetSpeed}{3.6}
-     \]
-   - If `targetSpeed` is **100 km/h**, `vFinal` is fixed at **27.78 m/s** for better accuracy.
-
-2. **Power Conversion:**
-   - Convert horsepower (CV) to watts (W):
-     \[
-     P_{W} = P_{CV} \times 735.5
-     \]
-   - Apply **transmission efficiency** (default `η = 0.85`):
-     \[
-     P_{eff} = P_{W} \times η
-     \]
-
-3. **Resistance Forces Calculation:**
-   - **Aerodynamic Drag Force:**
-     \[
-     F_{aero} = \frac{1}{2} \times \rho \times C_d \times A \times v_{final}^2
-     \]
-     - `ρ`: Air density (kg/m³)
-     - `C_d`: Drag coefficient
-     - `A`: Frontal area (m²)
-
-   - **Rolling Resistance Force:**
-     \[
-     F_{roll} = C_r \times M \times g
-     \]
-     - `C_r`: Rolling resistance coefficient
-     - `M`: Vehicle mass (kg)
-     - `g`: Gravity (9.81 m/s²)
-
-4. **Net Force Available for Acceleration:**
-   \[
-   F_{net} = \frac{P_{eff}}{v_{final}} - (F_{aero} + F_{roll})
-   \]
-
-5. **Acceleration Calculation:**
-   \[
-   a = \frac{F_{net}}{M}
-   \]
-
-6. **Time to Reach Target Speed:**
-   - Using the kinematic equation \( v = at \), we solve for time:
-     \[
-     t = \frac{v_{final}}{a}
-     \]
-
-7. **Traction Penalty Adjustments:**
-   - If the vehicle is **Rear-Wheel Drive (RWD)**:
-     \[
-     penalty = (0.3 \times targetSpeed) / 100
-     \]
-   - If the vehicle is **All-Wheel Drive (AWD)**:
-     \[
-     penalty = (0.5 \times targetSpeed) / 100
-     \]
-   - The final acceleration time is reduced accordingly.
-
-8. **Final Result:**
-   - The function ensures `t ≥ 0` and rounds the result to **two decimal places**.
-
-9. **Additional Outputs:**
-
-   In addition to the acceleration time, the following additional performance calculations are displayed:
-
-   - **Power per kg (CV/Kg):**
-     \[
-     \text{{Power per kg}} = \frac{{kg}}{{cv}} \, \text{{CV/Kg}}
-     \]
-   
-   - **Power per ton (CV/t):**
-     \[
-     \text{{Power per ton}} = \frac{{cv}}{{kg/1000}} \, \text{{CV/t}}
-     \]
-
-   - **Acceleration (m/s²):**
-     \[
-     \text{{Acceleration}} = \frac{{27.78}}{{\text{{time to 100}}}} \, \text{{m/s²}}
-     \]
-
-   - **Distance covered (meters):**
-     \[
-     \text{{Distance}} = 0.5 \times \left( \frac{{27.78}}{{\text{{time to 100}}}} \right) \times \left( \text{{time to 100}}^2 \right) \, \text{{meters}}
-     \]
-
-### Final Formula:
-\[
-t = \frac{v_{final}}{\left( \frac{P_{eff}}{v_{final} M} - \left( \frac{1}{2} \rho C_d A v_{final}^2 + C_r M g \right) \right)}
-\]
-With **traction penalty subtracted at the end**.
-
-This formula provides a realistic estimation of acceleration time by considering **vehicle power, aerodynamic drag, rolling resistance, and drivetrain traction effects**.
 
 ## License
 This project is distributed under the [MIT license](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
@@ -221,15 +117,13 @@ Uno degli aspetti più interessanti di VirtualDyno è la capacità di trovare fo
 
 ## Prossimi Sviluppi
 1. Tempo 0-200 Km/h + grafico
-2. Stima velocità massima
-3. Calcolo coppia in Nm
-4. Analisi della distribuzione della potenza su diverse gamme di velocità
-5. Simulazione delle performance su differenti tipologie di terreno (asfalto, neve, fango, ecc.)
-6. Ottimizzazione dei parametri aerodinamici in base a configurazioni personalizzabili del veicolo
-7. Supporto per configurazioni veicolari avanzate, come modelli ibridi o elettrici
-8. Miglioramento delle simulazioni in condizioni climatiche variabili (pioggia, vento, temperatura)
-9. Memorizzazione dei dati per un facile accesso e confronto nel tempo
-10. Condivisione dei dati con altri utenti o piattaforme per collaborazioni e analisi
+2. Analisi della distribuzione della potenza su diverse gamme di velocità
+3. Simulazione delle performance su differenti tipologie di terreno (asfalto, neve, fango, ecc.)
+4. Ottimizzazione dei parametri aerodinamici in base a configurazioni personalizzabili del veicolo
+5. Supporto per configurazioni veicolari avanzate, come modelli ibridi o elettrici
+6. Miglioramento delle simulazioni in condizioni climatiche variabili (pioggia, vento, temperatura)
+7. Memorizzazione dei dati per un facile accesso e confronto nel tempo
+8. Condivisione dei dati con altri utenti o piattaforme per collaborazioni e analisi
 
 ## Contributi
 Se vuoi contribuire, puoi creare una pull request con le tue modifiche o segnalare problemi nella sezione "Issues" del repository. Siamo attualmente alla ricerca di persone disposte ad aiutare con i seguenti aspetti:
@@ -240,108 +134,6 @@ Se vuoi contribuire, puoi creare una pull request con le tue modifiche o segnala
 4. Aiutare nello sviluppo dei prossimi sviluppi
 
 Questo progetto mira a rimanere gratuito e disponibile per tutti.
-
-## Formule Usate
-
-La funzione `calculateAccelerationTime(targetSpeed)` stima il **tempo di accelerazione** necessario per raggiungere una velocità data (in km/h) da fermo.
-
-### Dettaglio della Formula:
-
-1. **Conversione dell'Unità:**
-   - Convertire la velocità da **km/h a m/s**:
-     \[
-     v_{finale} = \frac{targetSpeed}{3.6}
-     \]
-   - Se `targetSpeed` è **100 km/h**, `vFinale` è fissato a **27.78 m/s** per una maggiore accuratezza.
-
-2. **Conversione della Potenza:**
-   - Convertire la potenza da cavalli (CV) a watt (W):
-     \[
-     P_{W} = P_{CV} \times 735.5
-     \]
-   - Applicare l'**efficienza di trasmissione** (default `η = 0.85`):
-     \[
-     P_{eff} = P_{W} \times η
-     \]
-
-3. **Calcolo delle Forze di Resistenza:**
-   - **Forza di Resistenza Aerodinamica:**
-     \[
-     F_{aero} = \frac{1}{2} \times \rho \times C_d \times A \times v_{finale}^2
-     \]
-     - `ρ`: Densità dell'aria (kg/m³)
-     - `C_d`: Coefficiente di resistenza aerodinamica
-     - `A`: Area frontale (m²)
-
-   - **Forza di Resistenza al Rotolamento:**
-     \[
-     F_{roll} = C_r \times M \times g
-     \]
-     - `C_r`: Coefficiente di resistenza al rotolamento
-     - `M`: Massa del veicolo (kg)
-     - `g`: Accelerazione di gravità (9.81 m/s²)
-
-4. **Forza Netta Disponibile per l'Accelerazione:**
-   \[
-   F_{net} = \frac{P_{eff}}{v_{finale}} - (F_{aero} + F_{roll})
-   \]
-
-5. **Calcolo dell'Accelerazione:**
-   \[
-   a = \frac{F_{net}}{M}
-   \]
-
-6. **Tempo per Raggiungere la Velocità Target:**
-   - Usando l'equazione cinematica \( v = at \), risolviamo per il tempo:
-     \[
-     t = \frac{v_{finale}}{a}
-     \]
-
-7. **Adeguamenti per il Penalizzamento della Trazione:**
-   - Se il veicolo è a **trazione posteriore (RWD)**:
-     \[
-     penalty = (0.3 \times targetSpeed) / 100
-     \]
-   - Se il veicolo è a **trazione integrale (AWD)**:
-     \[
-     penalty = (0.5 \times targetSpeed) / 100
-     \]
-   - Il tempo finale di accelerazione viene ridotto di conseguenza.
-
-8. **Risultato Finale:**
-   - La funzione garantisce che `t ≥ 0` e arrotonda il risultato a **due decimali**.
-
-9. **Uscite Aggiuntive:**
-
-   Oltre al tempo di accelerazione, vengono visualizzati i seguenti calcoli aggiuntivi sulle performance:
-
-   - **Potenza per kg (CV/Kg):**
-     \[
-     \text{{Potenza per kg}} = \frac{{kg}}{{cv}} \, \text{{CV/Kg}}
-     \]
-   
-   - **Potenza per tonnellata (CV/t):**
-     \[
-     \text{{Potenza per tonnellata}} = \frac{{cv}}{{kg/1000}} \, \text{{CV/t}}
-     \]
-
-   - **Accelerazione (m/s²):**
-     \[
-     \text{{Accelerazione}} = \frac{{27.78}}{{\text{{tempo per 100}}}} \, \text{{m/s²}}
-     \]
-
-   - **Distanza percorsa (metri):**
-     \[
-     \text{{Distanza}} = 0.5 \times \left( \frac{{27.78}}{{\text{{tempo per 100}}}} \right) \times \left( \text{{tempo per 100}}^2 \right) \, \text{{metri}}
-     \]
-
-### Formula Finale:
-\[
-t = \frac{v_{finale}}{\left( \frac{P_{eff}}{v_{finale} M} - \left( \frac{1}{2} \rho C_d A v_{finale}^2 + C_r M g \right) \right)}
-\]
-Con il **penalizzamento della trazione sottratto alla fine**.
-
-Questa formula fornisce una stima realistica del tempo di accelerazione considerando **potenza del veicolo, resistenza aerodinamica, resistenza al rotolamento e gli effetti della trazione del drivetrain**. 
 
 ## Licenza
 Questo progetto è distribuito sotto la [licenza MIT](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).

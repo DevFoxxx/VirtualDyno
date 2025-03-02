@@ -37,5 +37,12 @@
     "error_fields": "Compila tutti i campi obbligatori (CV, KG, Area frontale)",
     "top_speed": "Velocità massima teorica",
     "risultati": "Risultati simulazione",
+    "minRPM": "Min RPM",
+    "maxRPM": "Max RPM",
+    "minRPM_placeholder": "Inserisci il minimo RPM",
+    "maxRPM_placeholder": "Inserisci il massimo RPM",
+    "coppia_massima": "Coppia Massima",
+    "help_minrpm": "Numero di giri al minuto (RPM) minimo a cui il motore inizia a erogare potenza",
+    "help_maxrpm": "Numero di giri al minuto (RPM) massimo a cui il motore può operare prima di raggiungere il limite di sicurezza o l'efficienza del motore"
 }
   

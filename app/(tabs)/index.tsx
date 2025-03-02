@@ -37,7 +37,7 @@ export default function HomeScreen() {
   const [densitaAria, setDensitaAria] = useState('1.225');
   const [cd, setCd] = useState('0.30');
   const [cr, setCr] = useState('0.015');
-  const [areaFrontale, setAreaFrontale] = useState('');
+  const [areaFrontale, setAreaFrontale] = useState('2');
   const [trazione, setTrazione] = useState('FWD');
   const [result, setResult] = useState({ time0to100: '', topSpeed: "" });
   const [graphData, setGraphData] = useState<{ speed: number; time: number }[]>([]);
@@ -49,6 +49,18 @@ export default function HomeScreen() {
   const { colorScheme, toggleTheme } = useColorScheme();
   const currentTheme = colorScheme === 'dark' ? Colors.dark : Colors.light;
 
+  const [topSpeedGraphData, setTopSpeedGraphData] = useState<{
+    labels: string[];
+    datasets: { data: number[] }[];
+  }>({ labels: [], datasets: [] });
+
+  const [minRPM, setMinRPM] = useState('500');
+  const [maxRPM, setMaxRPM] = useState('');
+  const [coppiaMassima, setCoppiaMassima] = useState<number | null>(null);
+  const [coppiaGraphData, setCoppiaGraphData] = useState<{ rpm: number; coppia: number }[]>([]);
+
+  const [isResultVisible, setIsResultVisible] = useState(false);
+
   // Help messages translations
   const helpMessages = {
     cv: t('help_cv'),
@@ -59,13 +71,9 @@ export default function HomeScreen() {
     cr: t('help_cr'),
     areaFrontale: t('help_areaFrontale'),
     trazione: t('help_trazione'),
+    minRPM: t('help_minrpm'),
+    maxRPM: t('help_maxrpm')
   };
-
-  // Stato per memorizzare i dati del grafico della velocità massima
-  const [topSpeedGraphData, setTopSpeedGraphData] = useState<{
-    labels: string[];
-    datasets: { data: number[] }[];
-  }>({ labels: [], datasets: [] });
 
   const dynamicStyles = {
     container: {
@@ -203,6 +211,65 @@ export default function HomeScreen() {
     return vMid.toFixed(2);
   };
 
+  const calculateCoppia = () => {
+    const powerCV = parseFloat(cv); 
+    const powerWatt = powerCV * 735.5; 
+    const pesoKg = parseFloat(kg);
+    let minRPMValue = parseFloat(minRPM) || 800;
+    const maxRPMValue = parseFloat(maxRPM);
+
+    if (!powerWatt || !pesoKg || !maxRPMValue || minRPMValue >= maxRPMValue) return;
+
+    let tipo, step=1000;
+    const powerToWeight = powerCV / pesoKg; 
+
+    if (powerCV > 500 || powerToWeight > 0.13) {
+        tipo = "super";
+    } else if (powerCV > 150 || powerToWeight > 0.07) {
+        tipo = "sport";
+    } else {
+        tipo = "normal";
+    }
+
+    let rpmCoppiaMax, maxTorqueLimit, decayFactor, crescitaFactor;
+    if (tipo === "normal") {
+        rpmCoppiaMax = 3000;
+        maxTorqueLimit = 220;
+        decayFactor = 2500;
+        crescitaFactor = 1200;
+    } else if (tipo === "sport") {
+        rpmCoppiaMax = 4000;
+        maxTorqueLimit = 380;
+        decayFactor = 2000;
+        crescitaFactor = 1500;
+    } else { // super
+        rpmCoppiaMax = 6000;
+        maxTorqueLimit = 700;
+        decayFactor = 1800;
+        crescitaFactor = 2000;
+    }
+
+    let coppiaTeorica = (60 * powerWatt) / (2 * Math.PI * rpmCoppiaMax);
+    let coppiaMassimaRealistica = Math.min(coppiaTeorica * 0.85, maxTorqueLimit);
+    setCoppiaMassima(coppiaMassimaRealistica);
+
+    const rpmMedio = (minRPMValue + maxRPMValue) / 2;
+    
+    const data = [];
+    for (let rpm = minRPMValue; rpm <= maxRPMValue; rpm += step) {
+        let coppia;
+        if (rpm <= rpmCoppiaMax) {
+            coppia = coppiaMassimaRealistica * (1 - Math.exp(-rpm / crescitaFactor));
+        } else {
+            coppia = coppiaMassimaRealistica * Math.exp(-Math.pow((rpm - rpmCoppiaMax) / decayFactor, 2));
+        }
+        coppia = Math.max(coppia, 0); 
+        data.push({ rpm, coppia });
+    }
+    setCoppiaGraphData(data);
+  };
+
+
   const handleCalculate = () => {
     if (!requiredFieldsFilled) {
       setShowError(true);
@@ -230,6 +297,9 @@ export default function HomeScreen() {
     const topSpeed = calculateTopSpeed();
     setResult((prev) => ({ ...prev, topSpeed }));
 
+    calculateCoppia();
+    setIsResultVisible(true);
+
     setTimeout(() => {
       ref.current?.scrollToEnd();
     }, 100);
@@ -242,10 +312,15 @@ export default function HomeScreen() {
     setDensitaAria('1.225');
     setCd('0.30');
     setCr('0.015');
-    setAreaFrontale('');
-    setResult({ time0to100: '', topSpeed: "" });
+    setAreaFrontale('2');
+    setMinRPM('500');
+    setMaxRPM('');
+    setResult({ time0to100: '', topSpeed: ""});
     setGraphData([]);
     setTopSpeedGraphData({ labels: [], datasets: [] });
+    setCoppiaGraphData([]);
+    setCoppiaMassima(null);
+    setIsResultVisible(false);
   };
 
   const renderInputField = (
@@ -309,6 +384,8 @@ export default function HomeScreen() {
         {renderInputField('cd', cd, setCd, 'cd')}
         {renderInputField('cr', cr, setCr, 'cr')}
         {renderInputField('areaFrontale', areaFrontale, setAreaFrontale, 'areaFrontale')}
+        {renderInputField('minRPM', minRPM, setMinRPM, 'minRPM')}
+        {renderInputField('maxRPM', maxRPM, setMaxRPM, 'maxRPM')}
 
         <View style={styles.inputGroup}>
           <View style={styles.labelContainer}>
@@ -350,7 +427,9 @@ export default function HomeScreen() {
 
         {showError && <Text style={styles.errorText}>{t('error_fields')}</Text>}
 
-        <Text style={styles.risultati}>{t('risultati')}</Text>
+        {isResultVisible && (
+          <Text style={styles.risultati}>{t('risultati')}</Text>
+        )}
         {result.time0to100 && (
           <Text style={dynamicStyles.resultText}>
             {t('tempo')} {result.time0to100} {t('seconds')}
@@ -430,6 +509,45 @@ export default function HomeScreen() {
                   paddingBottom: '5%',
                 },
                 strokeWidth: 1,
+              }}
+              bezier
+              style={styles.chart}
+            />
+          </View>
+        )}
+
+        {coppiaMassima && (
+          <Text style={dynamicStyles.outputText}>
+            {t('coppia_massima')}: {coppiaMassima.toFixed(2)} Nm
+          </Text>
+        )}
+
+        {coppiaGraphData.length > 0 && (
+          <View>
+            <LineChart
+              data={{
+                labels: coppiaGraphData.map((d) => `${d.rpm}`),
+                datasets: [{ data: coppiaGraphData.map((d) => d.coppia) }],
+              }}
+              width={320}
+              height={240}
+              yAxisSuffix=" Nm"
+              chartConfig={{
+                backgroundColor: currentTheme.background,
+                backgroundGradientFrom: currentTheme.background,
+                backgroundGradientTo: currentTheme.background,
+                decimalPlaces: 1,
+                color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
+                propsForDots: {
+                  r: 3,
+                  strokeWidth: 2,
+                  stroke: '#004aad',
+                },
+                style: {
+                  paddingTop: '5%',
+                  paddingBottom: '5%',
+                },
               }}
               bezier
               style={styles.chart}
