@@ -42,24 +42,18 @@ export default function HomeScreen() {
   const [result, setResult] = useState({ time0to100: '', topSpeed: "" });
   const [graphData, setGraphData] = useState<{ speed: number; time: number }[]>([]);
   const [isEnglish, setIsEnglish] = useState(i18n.language === 'en');
+  const [minRPM, setMinRPM] = useState('500');
+  const [maxRPM, setMaxRPM] = useState('');
+  const [coppiaMassima, setCoppiaMassima] = useState<number | null>(null);
+  const [coppiaGraphData, setCoppiaGraphData] = useState<{ rpm: number; coppia: number }[]>([]);
+  const [topSpeedGraphData, setTopSpeedGraphData] = useState<{labels: string[]; datasets: { data: number[] }[];}>({ labels: [], datasets: [] });
+  const [isResultVisible, setIsResultVisible] = useState(false);
 
   const requiredFieldsFilled = cv && kg && areaFrontale;
   const buttonStyle = requiredFieldsFilled ? styles.buttonWhite : styles.buttonDisabled;
 
   const { colorScheme, toggleTheme } = useColorScheme();
   const currentTheme = colorScheme === 'dark' ? Colors.dark : Colors.light;
-
-  const [topSpeedGraphData, setTopSpeedGraphData] = useState<{
-    labels: string[];
-    datasets: { data: number[] }[];
-  }>({ labels: [], datasets: [] });
-
-  const [minRPM, setMinRPM] = useState('500');
-  const [maxRPM, setMaxRPM] = useState('');
-  const [coppiaMassima, setCoppiaMassima] = useState<number | null>(null);
-  const [coppiaGraphData, setCoppiaGraphData] = useState<{ rpm: number; coppia: number }[]>([]);
-
-  const [isResultVisible, setIsResultVisible] = useState(false);
 
   // Help messages translations
   const helpMessages = {
@@ -126,12 +120,14 @@ export default function HomeScreen() {
     }
   };
 
+  // Language management function IT - EN
   const handleLanguageToggle = () => {
     const newLang = isEnglish ? 'it' : 'en';
     i18n.changeLanguage(newLang);
     setIsEnglish(!isEnglish);
   };
 
+  // Function to calculate acceleration time from 0 to 100km/h 
   const calculateAccelerationTime = (targetSpeed: number) => {
     const powerCV = parseFloat(cv);
     const mass = parseFloat(kg);
@@ -161,6 +157,7 @@ export default function HomeScreen() {
     return time.toFixed(2);
   };
 
+  // Function to calculate maximum speed based on available power in kW
   const calculateTopSpeed = () => {
     const powerW = parseFloat(cv) * 735.5;
     const eta = parseFloat(efficienza);
@@ -211,6 +208,7 @@ export default function HomeScreen() {
     return vMid.toFixed(2);
   };
 
+  // Function to calculate the torque (coppia) based on engine specifications and RPM range
   const calculateCoppia = () => {
     const powerCV = parseFloat(cv); 
     const powerWatt = powerCV * 735.5; 
@@ -269,7 +267,7 @@ export default function HomeScreen() {
     setCoppiaGraphData(data);
   };
 
-
+  // Function to handle the calculation of acceleration time, top speed and torque
   const handleCalculate = () => {
     if (!requiredFieldsFilled) {
       setShowError(true);
@@ -305,6 +303,7 @@ export default function HomeScreen() {
     }, 100);
   };
 
+  // Function to reset input fields and delete output
   const handleReset = () => {
     setCv('');
     setKg('');
