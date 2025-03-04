@@ -3,6 +3,8 @@
 
 ![React Native](https://img.shields.io/badge/React%20Native-000000?style=for-the-badge&logo=react&logoColor=61DAFB) ![WIP](https://img.shields.io/badge/WIP%20-%20In%20progress-green) ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
 
+This application is in its early stages and is continuously being developed. It will be regularly updated, both functionally and visually. Consider the current content as the initial phase.
+
 ## Screenshot (development phase, light/dark theme)
  
 ![alt text](image.png)![alt text](image-1.png)![alt text](image-2.png)![alt text](image-3.png)![alt text](image-4.png)![alt text](image-5.png)
