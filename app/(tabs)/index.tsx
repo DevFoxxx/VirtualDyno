@@ -24,6 +24,7 @@ import { LineChart } from 'react-native-chart-kit';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Feather from '@expo/vector-icons/Feather';
+import TractionPicker from '@/components/TractionPicker';
 
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
@@ -38,7 +39,7 @@ export default function HomeScreen() {
   const [cd, setCd] = useState('0.30');
   const [cr, setCr] = useState('0.015');
   const [areaFrontale, setAreaFrontale] = useState('2');
-  const [trazione, setTrazione] = useState('FWD');
+  const [trazione, setTrazione] = useState('');
   const [result, setResult] = useState({ time0to100: '', topSpeed: "" });
   const [graphData, setGraphData] = useState<{ speed: number; time: number }[]>([]);
   const [isEnglish, setIsEnglish] = useState(i18n.language === 'en');
@@ -49,7 +50,7 @@ export default function HomeScreen() {
   const [topSpeedGraphData, setTopSpeedGraphData] = useState<{labels: string[]; datasets: { data: number[] }[];}>({ labels: [], datasets: [] });
   const [isResultVisible, setIsResultVisible] = useState(false);
 
-  const requiredFieldsFilled = cv && kg && areaFrontale;
+  const requiredFieldsFilled = cv && kg && areaFrontale && minRPM && maxRPM && trazione && efficienza && densitaAria && cd && cr;
   const buttonStyle = requiredFieldsFilled ? styles.buttonWhite : styles.buttonDisabled;
 
   const { colorScheme, toggleTheme } = useColorScheme();
@@ -327,6 +328,7 @@ export default function HomeScreen() {
     setTopSpeedGraphData({ labels: [], datasets: [] });
     setCoppiaGraphData([]);
     setCoppiaMassima(null);
+    setTrazione('');
     setIsResultVisible(false);
   };
 

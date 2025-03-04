@@ -33,7 +33,7 @@ const TractionPicker: React.FC<TractionPickerProps> = ({
             style={[
               styles.iconContainer,
               {
-                borderWidth: trazione === type ? 5 : 1,
+                borderWidth: trazione === type ? 3 : 1,
                 borderColor: trazione === type ? '#004aad' : currentTheme.text,
               },
             ]}
@@ -72,16 +72,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconContainer: {
-    width: 110,
-    height: 110,
-    borderRadius: 100,
+    width: 80,
+    height: 80,
+    borderRadius: 70,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 10,
   },
   icon: {
-    width: 90,
-    height: 90,
+    width: 65,
+    height: 65,
   },
   label: {
     marginTop: 8,
