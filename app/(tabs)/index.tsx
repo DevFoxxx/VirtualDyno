@@ -117,7 +117,7 @@ export default function HomeScreen() {
     },
     languageText: {
       color: currentTheme.text,
-    }
+    },
   };
 
   // Language management function IT - EN
@@ -201,7 +201,7 @@ export default function HomeScreen() {
       labels,
       datasets: [
         { data: powerRequiredData.map((watt) => watt / 1000) },
-        { data: powerAvailableData.map((watt) => watt / 1000) }, 
+        { data: powerAvailableData.map((watt) => watt / 1000) },
       ],
     });
 
@@ -210,59 +210,67 @@ export default function HomeScreen() {
 
   // Function to calculate the torque (coppia) based on engine specifications and RPM range
   const calculateCoppia = () => {
-    const powerCV = parseFloat(cv); 
-    const powerWatt = powerCV * 735.5; 
+    const powerCV = parseFloat(cv);
+    const powerWatt = powerCV * 735.5;
     const pesoKg = parseFloat(kg);
     let minRPMValue = parseFloat(minRPM) || 800;
     const maxRPMValue = parseFloat(maxRPM);
 
-    if (!powerWatt || !pesoKg || !maxRPMValue || minRPMValue >= maxRPMValue) return;
+    if (!powerWatt || !pesoKg || !maxRPMValue || minRPMValue >= maxRPMValue)
+      return;
 
-    let tipo, step=1000;
-    const powerToWeight = powerCV / pesoKg; 
+    let tipo, step = 1000;
+    const powerToWeight = powerCV / pesoKg;
 
     if (powerCV > 500 || powerToWeight > 0.13) {
-        tipo = "super";
+      tipo = 'super';
     } else if (powerCV > 150 || powerToWeight > 0.07) {
-        tipo = "sport";
+      tipo = 'sport';
     } else {
-        tipo = "normal";
+      tipo = 'normal';
     }
 
     let rpmCoppiaMax, maxTorqueLimit, decayFactor, crescitaFactor;
-    if (tipo === "normal") {
-        rpmCoppiaMax = 3000;
-        maxTorqueLimit = 220;
-        decayFactor = 2500;
-        crescitaFactor = 1200;
-    } else if (tipo === "sport") {
-        rpmCoppiaMax = 4000;
-        maxTorqueLimit = 380;
-        decayFactor = 2000;
-        crescitaFactor = 1500;
-    } else { // super
-        rpmCoppiaMax = 6000;
-        maxTorqueLimit = 700;
-        decayFactor = 1800;
-        crescitaFactor = 2000;
+    if (tipo === 'normal') {
+      rpmCoppiaMax = 3000;
+      maxTorqueLimit = 220;
+      decayFactor = 2500;
+      crescitaFactor = 1200;
+    } else if (tipo === 'sport') {
+      rpmCoppiaMax = 4000;
+      maxTorqueLimit = 380;
+      decayFactor = 2000;
+      crescitaFactor = 1500;
+    } else {
+      // super
+      rpmCoppiaMax = 6000;
+      maxTorqueLimit = 700;
+      decayFactor = 1800;
+      crescitaFactor = 2000;
     }
 
     let coppiaTeorica = (60 * powerWatt) / (2 * Math.PI * rpmCoppiaMax);
-    let coppiaMassimaRealistica = Math.min(coppiaTeorica * 0.85, maxTorqueLimit);
+    let coppiaMassimaRealistica = Math.min(
+      coppiaTeorica * 0.85,
+      maxTorqueLimit
+    );
     setCoppiaMassima(coppiaMassimaRealistica);
 
     const rpmMedio = (minRPMValue + maxRPMValue) / 2;
-    
+
     const data = [];
     for (let rpm = minRPMValue; rpm <= maxRPMValue; rpm += step) {
-        let coppia;
-        if (rpm <= rpmCoppiaMax) {
-            coppia = coppiaMassimaRealistica * (1 - Math.exp(-rpm / crescitaFactor));
-        } else {
-            coppia = coppiaMassimaRealistica * Math.exp(-Math.pow((rpm - rpmCoppiaMax) / decayFactor, 2));
-        }
-        coppia = Math.max(coppia, 0); 
-        data.push({ rpm, coppia });
+      let coppia;
+      if (rpm <= rpmCoppiaMax) {
+        coppia =
+          coppiaMassimaRealistica * (1 - Math.exp(-rpm / crescitaFactor));
+      } else {
+        coppia =
+          coppiaMassimaRealistica *
+          Math.exp(-Math.pow((rpm - rpmCoppiaMax) / decayFactor, 2));
+      }
+      coppia = Math.max(coppia, 0);
+      data.push({ rpm, coppia });
     }
     setCoppiaGraphData(data);
   };
@@ -276,7 +284,7 @@ export default function HomeScreen() {
     setShowError(false);
 
     const time0to100 = calculateAccelerationTime(100);
-    setResult({ time0to100, topSpeed: "" });
+    setResult({ time0to100, topSpeed: '' });
 
     const data = [];
     for (let speed = 0; speed <= 100; speed += 1) {
@@ -314,7 +322,7 @@ export default function HomeScreen() {
     setAreaFrontale('2');
     setMinRPM('500');
     setMaxRPM('');
-    setResult({ time0to100: '', topSpeed: ""});
+    setResult({ time0to100: '', topSpeed: '' });
     setGraphData([]);
     setTopSpeedGraphData({ labels: [], datasets: [] });
     setCoppiaGraphData([]);
@@ -330,20 +338,31 @@ export default function HomeScreen() {
   ) => (
     <View style={styles.inputGroup}>
       <View style={styles.labelContainer}>
-        <TouchableOpacity onPress={() => setSelectedHelp(selectedHelp === helpKey ? null : helpKey)}>
-          <Feather name="help-circle" size={16} color={currentTheme.text} style={styles.helpIcon} />
+        <TouchableOpacity
+          onPress={() =>
+            setSelectedHelp(selectedHelp === helpKey ? null : helpKey)
+          }
+        >
+          <Feather
+            name='help-circle'
+            size={16}
+            color={currentTheme.text}
+            style={styles.helpIcon}
+          />
         </TouchableOpacity>
         <Text style={dynamicStyles.label}> {t(labelKey)}</Text>
       </View>
       <TextInput
         style={dynamicStyles.input}
-        keyboardType="numeric"
+        keyboardType='numeric'
         value={state}
         onChangeText={setter}
         placeholder={t(`${labelKey}_placeholder`)}
         placeholderTextColor={currentTheme.placeHolderColor}
       />
-      {selectedHelp === helpKey && <Text style={styles.helpText}>{helpMessages[helpKey]}</Text>}
+      {selectedHelp === helpKey && (
+        <Text style={styles.helpText}>{helpMessages[helpKey]}</Text>
+      )}
     </View>
   );
 
@@ -352,17 +371,17 @@ export default function HomeScreen() {
   return (
     <ScrollView ref={ref} contentContainerStyle={dynamicStyles.container}>
       <View style={styles.headerContainer}>
-        <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
+        <Image
+          source={require('../../assets/images/icon.png')}
+          style={styles.logo}
+        />
         <Text style={styles.title}>{t('title')}</Text>
       </View>
 
       <View style={styles.controlsContainer}>
         <View style={styles.languageContainer}>
           <Text style={dynamicStyles.languageText}>IT</Text>
-          <Switch
-            value={isEnglish}
-            onValueChange={handleLanguageToggle}
-          />
+          <Switch value={isEnglish} onValueChange={handleLanguageToggle} />
           <Text style={dynamicStyles.languageText}>EN</Text>
         </View>
 
@@ -378,22 +397,46 @@ export default function HomeScreen() {
       <View style={styles.inputsWrapper}>
         {renderInputField('cv', cv, setCv, 'cv')}
         {renderInputField('kg', kg, setKg, 'kg')}
-        {renderInputField('efficienza', efficienza, setEfficienza, 'efficienza')}
-        {renderInputField('densitaAria', densitaAria, setDensitaAria, 'densitaAria')}
+        {renderInputField(
+          'efficienza',
+          efficienza,
+          setEfficienza,
+          'efficienza'
+        )}
+        {renderInputField(
+          'densitaAria',
+          densitaAria,
+          setDensitaAria,
+          'densitaAria'
+        )}
         {renderInputField('cd', cd, setCd, 'cd')}
         {renderInputField('cr', cr, setCr, 'cr')}
-        {renderInputField('areaFrontale', areaFrontale, setAreaFrontale, 'areaFrontale')}
+        {renderInputField(
+          'areaFrontale',
+          areaFrontale,
+          setAreaFrontale,
+          'areaFrontale'
+        )}
         {renderInputField('minRPM', minRPM, setMinRPM, 'minRPM')}
         {renderInputField('maxRPM', maxRPM, setMaxRPM, 'maxRPM')}
 
         <View style={styles.inputGroup}>
           <View style={styles.labelContainer}>
-            <TouchableOpacity onPress={() => setSelectedHelp(selectedHelp === 'trazione' ? null : 'trazione')}>
-              <Feather name="help-circle" size={16} color={currentTheme.text} style={styles.helpIcon} />
+            <TouchableOpacity
+              onPress={() =>
+                setSelectedHelp(selectedHelp === 'trazione' ? null : 'trazione')
+              }
+            >
+              <Feather
+                name='help-circle'
+                size={16}
+                color={currentTheme.text}
+                style={styles.helpIcon}
+              />
             </TouchableOpacity>
             <Text style={dynamicStyles.label}> {t('trazione')}</Text>
           </View>
-          <Picker
+          {/* <Picker
             selectedValue={trazione}
             onValueChange={setTrazione}
             dropdownIconColor={currentTheme.text}
@@ -406,8 +449,15 @@ export default function HomeScreen() {
                 color={dynamicStyles.text.color as string}
               />
             ))}
-          </Picker>
-          {selectedHelp === 'trazione' && <Text style={styles.helpText}>{helpMessages.trazione}</Text>}
+          </Picker> */}
+          <TractionPicker
+            trazione={trazione}
+            setTrazione={setTrazione}
+            currentTheme={currentTheme}
+          />
+          {selectedHelp === 'trazione' && (
+            <Text style={styles.helpText}>{helpMessages.trazione}</Text>
+          )}
         </View>
 
         <View style={styles.buttonContainer}>
@@ -416,10 +466,15 @@ export default function HomeScreen() {
             onPress={handleCalculate}
             disabled={!requiredFieldsFilled}
           >
-            <Text style={{ color: !requiredFieldsFilled ? '#999' : '#000' }}>{t('calcola')}</Text>
+            <Text style={{ color: !requiredFieldsFilled ? '#999' : '#000' }}>
+              {t('calcola')}
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={handleReset}>
+          <TouchableOpacity
+            style={[styles.button, styles.resetButton]}
+            onPress={handleReset}
+          >
             <Text style={styles.resetButtonText}>{t('reset')}</Text>
           </TouchableOpacity>
         </View>
@@ -473,7 +528,7 @@ export default function HomeScreen() {
 
         {result.topSpeed && (
           <Text style={dynamicStyles.resultText}>
-            {t("top_speed")}: {result.topSpeed} km/h
+            {t('top_speed')}: {result.topSpeed} km/h
           </Text>
         )}
 
@@ -486,7 +541,7 @@ export default function HomeScreen() {
               }}
               width={320}
               height={240}
-              yAxisSuffix=" kW"
+              yAxisSuffix=' kW'
               chartConfig={{
                 backgroundColor: currentTheme.background,
                 backgroundGradientFrom: currentTheme.background,
@@ -497,11 +552,11 @@ export default function HomeScreen() {
                 propsForDots: {
                   r: (value, index) => (index % 50 === 0 ? 4 : 0),
                   strokeWidth: 2,
-                  stroke: "#004aad",
+                  stroke: '#004aad',
                 },
                 propsForBackgroundLines: {
                   strokeWidth: 0.25,
-                  strokeDasharray: "",
+                  strokeDasharray: '',
                 },
                 style: {
                   paddingTop: '5%',
@@ -530,7 +585,7 @@ export default function HomeScreen() {
               }}
               width={320}
               height={240}
-              yAxisSuffix=" Nm"
+              yAxisSuffix=' Nm'
               chartConfig={{
                 backgroundColor: currentTheme.background,
                 backgroundGradientFrom: currentTheme.background,
@@ -606,7 +661,7 @@ const styles = StyleSheet.create({
     color: '#004aad',
     marginTop: 20,
     marginBottom: 10,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   controlsContainer: {
     flexDirection: 'row',
@@ -623,11 +678,11 @@ const styles = StyleSheet.create({
     color: '#004aad',
     borderRadius: 100,
     padding: 5,
-    borderColor: 'white'
+    borderColor: 'white',
   },
   inputsWrapper: {
     width: '90%',
-    marginTop: 10
+    marginTop: 10,
   },
   inputGroup: {
     marginBottom: 15,
