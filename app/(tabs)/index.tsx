@@ -28,6 +28,7 @@ import TractionPicker from '@/components/TractionPicker';
 import TheoreticalTopSpeed from '@/components/TheoreticalTopSpeed';
 import ZeroTo100Chart from '@/components/zeroTo100Chart';
 import MaxTorqueChart from '@/components/MaxTorqueChart';
+import AdditionalStats from '@/components/AdditionalStats';
 
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
@@ -519,15 +520,17 @@ export default function HomeScreen() {
           </Text>
         )}
 
-        <ZeroTo100Chart //Description and legend title need to be translated in Italian
-          graphData={graphData}
-          currentTheme={currentTheme}
-          title={`${t('tempo')} ${result.time0to100} ${t('seconds')}`}
-          description={
-            ' This graph represents the time taken to reach different speeds, illustrating acceleration performance.'
-          }
-          legendTitle={'Time To reach 100 km/h'}
-        />
+        {graphData.length > 0 && (
+          <ZeroTo100Chart //Description and legend title need to be translated in Italian
+            graphData={graphData}
+            currentTheme={currentTheme}
+            title={`${t('tempo')} ${result.time0to100} ${t('seconds')}`}
+            description={
+              ' This graph represents the time taken to reach different speeds, illustrating acceleration performance.'
+            }
+            legendTitle={'Time To reach 100 km/h'}
+          />
+        )}
 
         {/* {graphData.length > 0 && (
           <View>
@@ -667,30 +670,36 @@ export default function HomeScreen() {
         )}
 
         {result.time0to100 && (
-          <View style={dynamicStyles.additionalOutput}>
-            <Text style={dynamicStyles.outputText}>
-              {t('power_kw')}: {(parseFloat(cv) * 0.7355).toFixed(2)} kW
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('power_kgcv')}: {(kg / cv).toFixed(2)} CV/Kg
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('power')}: {(cv / (kg / 1000)).toFixed(2)} CV/t
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('acceleration')}:{' '}
-              {(27.78 / parseFloat(result.time0to100)).toFixed(2)} m/s²
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('distance')}:{' '}
-              {(
-                0.5 *
-                (27.78 / parseFloat(result.time0to100)) *
-                Math.pow(parseFloat(result.time0to100), 2)
-              ).toFixed(2)}{' '}
-              meters
-            </Text>
-          </View>
+          <AdditionalStats
+            cv={cv}
+            kg={parseFloat(kg)}
+            result={result}
+            currentTheme={currentTheme}
+          />
+          // <View style={dynamicStyles.additionalOutput}>
+          //   <Text style={dynamicStyles.outputText}>
+          //     {t('power_kw')}: {(parseFloat(cv) * 0.7355).toFixed(2)} kW
+          //   </Text>
+          //   <Text style={dynamicStyles.outputText}>
+          //     {t('power_kgcv')}: {(kg / cv).toFixed(2)} CV/Kg
+          //   </Text>
+          //   <Text style={dynamicStyles.outputText}>
+          //     {t('power')}: {(cv / (kg / 1000)).toFixed(2)} CV/t
+          //   </Text>
+          //   <Text style={dynamicStyles.outputText}>
+          //     {t('acceleration')}:{' '}
+          //     {(27.78 / parseFloat(result.time0to100)).toFixed(2)} m/s²
+          //   </Text>
+          //   <Text style={dynamicStyles.outputText}>
+          //     {t('distance')}:{' '}
+          //     {(
+          //       0.5 *
+          //       (27.78 / parseFloat(result.time0to100)) *
+          //       Math.pow(parseFloat(result.time0to100), 2)
+          //     ).toFixed(2)}{' '}
+          //     meters
+          //   </Text>
+          // </View>
         )}
       </View>
     </ScrollView>

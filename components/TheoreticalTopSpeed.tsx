@@ -18,7 +18,6 @@ const TheoreticalTopSpeed: React.FC<TheoreticalTopSpeedProps> = ({
   legendTitle,
   description,
 }) => {
-  console.log('Graph Data:', { ...topSpeedGraphData });
   return (
     <View style={[styles.container, { borderBottomColor: currentTheme.text }]}>
       <View style={styles.chartContainer}>
