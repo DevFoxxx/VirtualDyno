@@ -33,7 +33,7 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
               .map((d) => `${d.speed}`),
             datasets: [{ data: graphData.map((d) => d.time) }],
           }}
-          width={360}
+          width={390}
           height={240}
           chartConfig={{
             backgroundColor: currentTheme.background,
@@ -58,7 +58,9 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
           style={styles.chart}
           fromZero
           bezier
-          verticalLabelRotation={30}
+          verticalLabelRotation={60}
+          xLabelsOffset={-10}
+          yLabelsOffset={4}
         />
 
         {/* Legend and description */}
@@ -110,13 +112,14 @@ const styles = StyleSheet.create({
   chart: {
     marginVertical: 8,
     borderRadius: 16,
-    marginLeft: -20,
-    paddingBottom: 5,
+    paddingBottom: 12,
+    marginLeft: -30,
   },
   legendContainer: {
     alignItems: 'center',
     paddingHorizontal: 10,
     marginBottom: 10,
+    marginTop: -15,
   },
   legendItem: {
     flexDirection: 'row',
