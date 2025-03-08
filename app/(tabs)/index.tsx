@@ -25,6 +25,9 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Feather from '@expo/vector-icons/Feather';
 import TractionPicker from '@/components/TractionPicker';
+import TheoreticalTopSpeed from '@/components/TheoreticalTopSpeed';
+import MaxTorqueChart from '@/components/MaxTorqueChart';
+import AdditionalStats from '@/components/AdditionalStats';
 import ZeroTo100Chart from '@/components/ZeroTo100Chart';
 
 export default function HomeScreen() {
@@ -512,166 +515,50 @@ export default function HomeScreen() {
           <Text style={styles.risultati}>{t('risultati')}</Text>
         )}
 
-        {/* {result.time0to100 && (
-          <Text style={dynamicStyles.resultText}>
-            {t('tempo')} {result.time0to100} {t('seconds')}
-          </Text>
-        )} */}
-
-        <ZeroTo100Chart //Description and legend title need to be translated in Italian
-          graphData={graphData}
-          currentTheme={currentTheme}
-          title={`${t('tempo')} ${result.time0to100} ${t('seconds')}`}
-          description={
-            ' This graph represents the time taken to reach different speeds, illustrating acceleration performance.'
-          }
-          legendTitle={'Time To reach 100 km/h'}
-        />
-
-        {/* {graphData.length > 0 && (
-          <View>
-            <LineChart
-              data={{
-                labels: graphData
-                  .filter((d, index) => index % 10 === 0)
-                  .map((d) => `${d.speed}`),
-                datasets: [{ data: graphData.map((d) => d.time) }],
-              }}
-              width={320}
-              height={240}
-              yAxisSuffix=' s'
-              chartConfig={{
-                backgroundColor: currentTheme.background,
-                backgroundGradientFrom: currentTheme.background,
-                backgroundGradientTo: currentTheme.background,
-                decimalPlaces: 2,
-                color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-                propsForDots: {
-                  r: '0.1',
-                  strokeWidth: '2',
-                  stroke: currentTheme.text,
-                },
-                style: {
-                  paddingTop: '5%',
-                  paddingBottom: '5%',
-                },
-              }}
-              bezier
-              style={styles.chart}
-              fromZero
-            />
-          </View>
-        )} */}
-
-        {result.topSpeed && (
-          <Text style={dynamicStyles.resultText}>
-            {t('top_speed')}: {result.topSpeed} km/h
-          </Text>
+        {/* Description and legend title need to be translated in Italian */}
+        {graphData.length > 0 && (
+          <ZeroTo100Chart
+            graphData={graphData}
+            currentTheme={currentTheme}
+            title={`${t('tempo')} ${result.time0to100} ${t('seconds')}`}
+            description={
+              ' This graph represents the time taken to reach different speeds, illustrating acceleration performance.'
+            }
+            legendTitle={'Time To reach 100 km/h'}
+          />
         )}
 
         {result.topSpeed && (
-          <View>
-            <LineChart
-              data={{
-                labels: topSpeedGraphData.labels,
-                datasets: topSpeedGraphData.datasets,
-              }}
-              width={320}
-              height={240}
-              yAxisSuffix=' kW'
-              chartConfig={{
-                backgroundColor: currentTheme.background,
-                backgroundGradientFrom: currentTheme.background,
-                backgroundGradientTo: currentTheme.background,
-                decimalPlaces: 1,
-                color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-                propsForDots: {
-                  r: (value, index) => (index % 50 === 0 ? 4 : 0),
-                  strokeWidth: 2,
-                  stroke: '#004aad',
-                },
-                propsForBackgroundLines: {
-                  strokeWidth: 0.25,
-                  strokeDasharray: '',
-                },
-                style: {
-                  paddingTop: '5%',
-                  paddingBottom: '5%',
-                },
-                strokeWidth: 1,
-              }}
-              bezier
-              style={styles.chart}
-            />
-          </View>
-        )}
-
-        {coppiaMassima && (
-          <Text style={dynamicStyles.outputText}>
-            {t('coppia_massima')}: {coppiaMassima.toFixed(2)} Nm
-          </Text>
+          <TheoreticalTopSpeed
+            topSpeedGraphData={topSpeedGraphData}
+            currentTheme={currentTheme}
+            title={`${t('top_speed')} ${result.topSpeed} km/h`}
+            legendTitle={'Speed (km/h)'}
+            description={
+              'This graph represents the theoretical top speed, displaying the relationship between speed (km/h) and power (kW)'
+            }
+          />
         )}
 
         {coppiaGraphData.length > 0 && (
-          <View>
-            <LineChart
-              data={{
-                labels: coppiaGraphData.map((d) => `${d.rpm}`),
-                datasets: [{ data: coppiaGraphData.map((d) => d.coppia) }],
-              }}
-              width={320}
-              height={240}
-              yAxisSuffix=' Nm'
-              chartConfig={{
-                backgroundColor: currentTheme.background,
-                backgroundGradientFrom: currentTheme.background,
-                backgroundGradientTo: currentTheme.background,
-                decimalPlaces: 1,
-                color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-                propsForDots: {
-                  r: 3,
-                  strokeWidth: 2,
-                  stroke: '#004aad',
-                },
-                style: {
-                  paddingTop: '5%',
-                  paddingBottom: '5%',
-                },
-              }}
-              bezier
-              style={styles.chart}
-            />
-          </View>
+          <MaxTorqueChart
+            coppiaGraphData={coppiaGraphData}
+            currentTheme={currentTheme}
+            title={`${t('coppia_massima')}: ${coppiaMassima!.toFixed(2)} Nm`}
+            legendTitle={'Revolutions per minute (RPM)'}
+            description={
+              'The chart displays the maximum torque of a car across different RPM levels, highlighting the RPM range where peak torque is achieved for optimal power delivery.'
+            }
+          />
         )}
 
         {result.time0to100 && (
-          <View style={dynamicStyles.additionalOutput}>
-            <Text style={dynamicStyles.outputText}>
-              {t('power_kw')}: {(parseFloat(cv) * 0.7355).toFixed(2)} kW
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('power_kgcv')}: {(kg / cv).toFixed(2)} CV/Kg
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('power')}: {(cv / (kg / 1000)).toFixed(2)} CV/t
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('acceleration')}:{' '}
-              {(27.78 / parseFloat(result.time0to100)).toFixed(2)} m/s²
-            </Text>
-            <Text style={dynamicStyles.outputText}>
-              {t('distance')}:{' '}
-              {(
-                0.5 *
-                (27.78 / parseFloat(result.time0to100)) *
-                Math.pow(parseFloat(result.time0to100), 2)
-              ).toFixed(2)}{' '}
-              meters
-            </Text>
-          </View>
+          <AdditionalStats
+            cv={cv}
+            kg={parseFloat(kg)}
+            result={result}
+            currentTheme={currentTheme}
+          />
         )}
       </View>
     </ScrollView>
