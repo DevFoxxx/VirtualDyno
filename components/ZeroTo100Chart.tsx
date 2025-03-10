@@ -1,10 +1,15 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+// import { LineChart } from 'react-native-chart-kit';
+import { LineChart } from 'react-native-gifted-charts';
 
 interface TimeTo100GraphProps {
   graphData: { speed: number; time: number }[];
-  currentTheme: { background: string; text: string };
+  currentTheme: {
+    placeHolderColor: string;
+    background: string;
+    text: string;
+  };
   title: string;
   description: string;
   legendTitle: string;
@@ -26,42 +31,51 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
           {title}
         </Text>
 
-        <LineChart
-          data={{
-            labels: graphData
+        <View
+          style={{
+            marginBottom: 30,
+            paddingRight: 40,
+            marginLeft: -8,
+          }}
+        >
+          <LineChart
+            data={graphData
               .filter((_, index) => index % 10 === 0)
-              .map((d) => `${d.speed}`),
-            datasets: [{ data: graphData.map((d) => d.time) }],
-          }}
-          width={390}
-          height={240}
-          chartConfig={{
-            backgroundColor: currentTheme.background,
-            backgroundGradientFrom: currentTheme.background,
-            backgroundGradientTo: currentTheme.background,
-            decimalPlaces: 2,
-            color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-            propsForDots: {
-              r: '0.1',
-              strokeWidth: '2',
-              stroke: currentTheme.text,
-            },
-            style: {
-              paddingTop: '5%',
-              paddingBottom: '5%',
-            },
-          }}
-          xAxisLabel='km/h'
-          yAxisSuffix=' s'
-          style={styles.chart}
-          fromZero
-          bezier
-          verticalLabelRotation={60}
-          xLabelsOffset={-10}
-          yLabelsOffset={4}
-        />
-
+              .map((item) => ({
+                value: item.time, // y-axis value (time)
+                x: item.speed, // x-axis value (speed)
+                label: String(item.speed),
+                showXAxisIndex: true,
+                dataPointText: String(item.time),
+              }))}
+            width={320}
+            height={250}
+            xAxisColor={currentTheme.text}
+            yAxisColor={currentTheme.text}
+            yAxisIndicesColor={currentTheme.text}
+            xAxisLabelTextStyle={{ color: currentTheme.text }}
+            yAxisLabelContainerStyle={{ color: currentTheme.text }}
+            showVerticalLines={true}
+            isAnimated
+            xAxisIndicesWidth={0}
+            adjustToWidth={true}
+            initialSpacing={0}
+            color1={currentTheme.placeHolderColor}
+            dataPointsColor1='#004aad'
+            focusEnabled
+            stripColor={currentTheme.placeHolderColor}
+            focusedDataPointColor='green'
+            showStripOnFocus
+            showTextOnFocus={true}
+            delayBeforeUnFocus={3000}
+            textColor={currentTheme.text}
+            focusedDataPointHeight={30}
+            textFontSize1={15}
+            textShiftX={-30}
+            disableScroll={true}
+            yAxisLabelSuffix=' s'
+          />
+        </View>
         {/* Legend and description */}
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
