@@ -23,6 +23,7 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
   legendTitle,
 }) => {
   if (graphData.length === 0) return null;
+  // console.log(graphData);
 
   return (
     <View style={[styles.container, { borderBottomColor: currentTheme.text }]}>
