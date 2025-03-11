@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
-
+import { CurveType, LineChart } from 'react-native-gifted-charts';
 interface MaxTorqueChartProps {
   coppiaGraphData: { rpm: number; coppia: number }[];
-  currentTheme: { background: string; text: string };
+  currentTheme: {
+    placeHolderColor: string | undefined;
+    background: string;
+    text: string;
+  };
   title: string;
   legendTitle: string;
   description: string;
@@ -23,36 +26,52 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
         <Text style={[styles.title, { color: currentTheme.text }]}>
           {title}
         </Text>
-
-        <LineChart
-          data={{
-            labels: coppiaGraphData.map((d) => `${d.rpm}`),
-            datasets: [{ data: coppiaGraphData.map((d) => d.coppia) }],
+        <View
+          style={{
+            marginBottom: 20,
+            paddingRight: 40,
+            marginLeft: -20,
           }}
-          width={360}
-          height={240}
-          yAxisSuffix=' Nm'
-          chartConfig={{
-            backgroundColor: currentTheme.background,
-            backgroundGradientFrom: currentTheme.background,
-            backgroundGradientTo: currentTheme.background,
-            decimalPlaces: 1,
-            color: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 74, 173, ${opacity})`,
-            propsForDots: {
-              r: 3,
-              strokeWidth: 2,
-              stroke: '#004aad',
-            },
-            style: {
-              paddingTop: '5%',
-              paddingBottom: '5%',
-            },
-          }}
-          bezier
-          style={styles.chart}
-          yLabelsOffset={8}
-        />
+        >
+          <LineChart
+            data={coppiaGraphData.map((item) => ({
+              value: item.coppia,
+              label: String(item.rpm),
+              dataPointText: String(Math.floor(item.coppia)),
+            }))}
+            width={310}
+            height={240}
+            xAxisColor={'#004aad'}
+            yAxisColor={'#004aad'}
+            yAxisIndicesColor={'#004aad'}
+            xAxisLabelTextStyle={{ color: '#004aad' }}
+            yAxisTextStyle={{ color: '#004aad' }}
+            rulesColor={'#bdc6c9'}
+            verticalLinesColor={'#bdc6c9'}
+            thickness={3}
+            dataPointsRadius={4}
+            showVerticalLines={true}
+            isAnimated
+            adjustToWidth={true}
+            color1={'#004aad'}
+            dataPointsColor1='#004aad'
+            focusEnabled
+            stripColor={'#004aad'}
+            focusedDataPointColor='green'
+            showStripOnFocus
+            showTextOnFocus={true}
+            delayBeforeUnFocus={3000}
+            textColor={'#004aad'}
+            focusedDataPointHeight={30}
+            textFontSize1={15}
+            disableScroll={true}
+            yAxisLabelSuffix=' Nm'
+            yAxisLabelWidth={55}
+            curved
+            curvature={0.1}
+            curveType={CurveType.CUBIC}
+          />
+        </View>
 
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>

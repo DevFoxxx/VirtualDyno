@@ -58,25 +58,29 @@ const TheoreticalTopSpeed: React.FC<TheoreticalTopSpeedProps> = ({
             }))}
             width={300}
             height={240}
-            xAxisColor={currentTheme.text}
-            yAxisColor={currentTheme.text}
-            yAxisIndicesColor={currentTheme.text}
-            xAxisLabelTextStyle={{ color: currentTheme.text }}
-            yAxisLabelContainerStyle={{ color: currentTheme.text }}
+            xAxisColor={'#004aad'}
+            yAxisColor={'#004aad'}
+            yAxisIndicesColor={'#004aad'}
+            xAxisLabelTextStyle={{ color: '#004aad' }}
+            yAxisTextStyle={{ color: '#004aad' }}
+            rulesColor={'#bdc6c9'}
+            verticalLinesColor={'#bdc6c9'}
+            thickness={3}
+            dataPointsRadius={4}
             showVerticalLines={true}
             isAnimated
             xAxisIndicesWidth={0}
             adjustToWidth={true}
             initialSpacing={0}
-            color1={currentTheme.placeHolderColor}
+            color1={'#004aad'}
             dataPointsColor1='#004aad'
             focusEnabled
-            stripColor={currentTheme.placeHolderColor}
+            stripColor={'#004aad'}
             focusedDataPointColor='green'
             showStripOnFocus
             showTextOnFocus={true}
             delayBeforeUnFocus={3000}
-            textColor={currentTheme.text}
+            textColor={'#004aad'}
             focusedDataPointHeight={30}
             textFontSize1={15}
             textShiftX={-30}
