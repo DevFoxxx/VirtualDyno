@@ -29,6 +29,7 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
   };
 
   let peakCoppiaIndex = getMaxCoppiaIndex(coppiaGraphData);
+  console.log(coppiaGraphData);
 
   return (
     <View style={[styles.container, { borderBottomColor: currentTheme.text }]}>
@@ -110,17 +111,41 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
         </View>
 
         <View style={styles.legendContainer}>
-          <View style={styles.legendItem}>
-            <View
-              style={[
-                styles.legendColor,
-                { backgroundColor: 'rgba(0, 74, 173, 1)' },
-              ]}
-            />
-            <Text style={[styles.legendText, { color: currentTheme.text }]}>
-              {legendTitle}
-            </Text>
+          <View
+            style={{
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <View style={styles.legendItem}>
+              <View
+                style={[
+                  styles.legendColor,
+                  { backgroundColor: 'rgba(0, 74, 173, 1)' },
+                ]}
+              />
+              <Text style={[styles.legendText, { color: currentTheme.text }]}>
+                {legendTitle}
+              </Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendColor, { backgroundColor: '#09ff00' }]}
+              />
+              <Text style={[styles.legendText, { color: currentTheme.text }]}>
+                Max Torque
+              </Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendColor, { backgroundColor: '#ff8080' }]}
+              />
+              <Text style={[styles.legendText, { color: currentTheme.text }]}>
+                Torque Decline
+              </Text>
+            </View>
           </View>
+
           <Text style={[styles.descriptionText, { color: currentTheme.text }]}>
             {description}
           </Text>
