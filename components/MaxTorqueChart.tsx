@@ -20,6 +20,16 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
   description,
   title,
 }) => {
+  const getMaxCoppiaIndex = (data: { rpm: number; coppia: number }[]) => {
+    return data.reduce(
+      (maxIndex, entry, index, arr) =>
+        entry.coppia > arr[maxIndex].coppia ? index : maxIndex,
+      0
+    );
+  };
+
+  let peakCoppiaIndex = getMaxCoppiaIndex(coppiaGraphData);
+
   return (
     <View style={[styles.container, { borderBottomColor: currentTheme.text }]}>
       <View style={styles.chartContainer}>
@@ -29,8 +39,9 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
         <View
           style={{
             marginBottom: 20,
-            paddingRight: 40,
+            paddingRight: 60,
             marginLeft: -20,
+            borderWidth: 1,
           }}
         >
           <LineChart
@@ -39,15 +50,40 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
               label: String(item.rpm),
               dataPointText: String(Math.floor(item.coppia)),
             }))}
-            width={310}
+            //Max Torque///////////////////////////////////
+            data2={coppiaGraphData.map((item) => ({
+              value: item.coppia,
+              label: String(item.rpm),
+              dataPointText: String(Math.floor(item.coppia)),
+            }))}
+            startIndex2={peakCoppiaIndex}
+            endIndex2={peakCoppiaIndex}
+            dataPointsColor2='#09ff00'
+            zIndex2={100}
+            //Declining Torque//////////////////////////////
+            data3={coppiaGraphData.map((item) => ({
+              value: item.coppia,
+              label: String(item.rpm),
+              dataPointText: String(Math.floor(item.coppia)),
+            }))}
+            startIndex3={peakCoppiaIndex}
+            endIndex3={coppiaGraphData.length - 1}
+            color3={'#ff8080'}
+            dataPointsColor3='#004aad'
+            /////////////////////////////////////////////////
+            width={320}
             height={240}
             xAxisColor={'#004aad'}
             yAxisColor={'#004aad'}
             yAxisIndicesColor={'#004aad'}
-            xAxisLabelTextStyle={{ color: '#004aad' }}
+            xAxisLabelTextStyle={{
+              color: '#004aad',
+              fontSize: 12,
+              width: 40,
+            }}
             yAxisTextStyle={{ color: '#004aad' }}
-            rulesColor={'#bdc6c9'}
-            verticalLinesColor={'#bdc6c9'}
+            rulesColor={'#5a5d5e'}
+            verticalLinesColor={'#5a5d5e'}
             thickness={3}
             dataPointsRadius={4}
             showVerticalLines={true}
@@ -68,7 +104,7 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
             yAxisLabelSuffix=' Nm'
             yAxisLabelWidth={55}
             curved
-            curvature={0.1}
+            curvature={0.05}
             curveType={CurveType.CUBIC}
           />
         </View>

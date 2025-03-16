@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Alert } from 'react-native';
 // import { LineChart } from 'react-native-chart-kit';
 import { LineChart } from 'react-native-gifted-charts';
 
@@ -23,6 +23,7 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
   legendTitle,
 }) => {
   if (graphData.length === 0) return null;
+  const maxTime = Math.ceil(Math.max(...graphData.map((d) => d.time)));
   // console.log(graphData);
 
   return (
@@ -54,8 +55,8 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
             yAxisIndicesColor={'#004aad'}
             xAxisLabelTextStyle={{ color: '#004aad' }}
             yAxisTextStyle={{ color: '#004aad' }}
-            rulesColor={'#bdc6c9'}
-            verticalLinesColor={'#bdc6c9'}
+            rulesColor={'#5a5d5e'}
+            verticalLinesColor={'#5a5d5e'}
             thickness={3}
             dataPointsRadius={4}
             showVerticalLines={true}
@@ -67,16 +68,21 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
             dataPointsColor1='#004aad'
             focusEnabled
             stripColor={'#004aad'}
-            focusedDataPointColor='green'
+            focusedDataPointColor='#004aad'
             showStripOnFocus
+            focusedDataPointRadius={8}
             showTextOnFocus={true}
             delayBeforeUnFocus={3000}
             textColor={'#004aad'}
             focusedDataPointHeight={30}
-            textFontSize1={15}
-            textShiftX={-30}
+            textFontSize1={12}
+            textShiftX={-10}
+            textShiftY={-10}
             disableScroll={true}
             yAxisLabelSuffix=' s'
+            maxValue={maxTime + 1}
+            noOfSections={maxTime + 1}
+            spacing={30}
           />
         </View>
         {/* Legend and description */}
