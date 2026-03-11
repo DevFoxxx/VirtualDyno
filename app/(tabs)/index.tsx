@@ -33,7 +33,7 @@ import ZeroTo100Chart from '@/components/ZeroTo100Chart';
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const [showError, setShowError] = useState(false);
-  const [selectedHelp, setSelectedHelp] = useState<string | null>(null);
+  const [selectedHelp, setSelectedHelp] = useState<HelpKey | null>(null);
 
   // State variables
   const [cv, setCv] = useState('');
@@ -78,6 +78,8 @@ export default function HomeScreen() {
 
   const { colorScheme, toggleTheme } = useColorScheme();
   const currentTheme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+
+  type HelpKey = keyof typeof helpMessages;
 
   // Help messages translations
   const helpMessages = {
@@ -213,7 +215,7 @@ export default function HomeScreen() {
     const powerRequiredData: number[] = [];
     const powerAvailableData: number[] = [];
 
-    for (let speed = 0; speed <= vMid; speed += 1) {
+    for (let speed = 0; speed <= vMid!; speed += 1) {
       const powerRequired =
         0.5 * rho * cdValue * area * Math.pow(speed / 3.6, 3) +
         crValue * mass * 9.81 * (speed / 3.6);
@@ -233,7 +235,7 @@ export default function HomeScreen() {
       ],
     });
 
-    return vMid.toFixed(2);
+    return vMid!.toFixed(2);
   };
 
   // Function to calculate the torque (coppia) based on engine specifications and RPM range
@@ -318,7 +320,7 @@ export default function HomeScreen() {
     const data = [];
     for (let speed = 0; speed <= 100; speed += 1) {
       const time = calculateAccelerationTime(speed);
-      if (!isNaN(time)) {
+      if (!isNaN(Number(time))) {
         data.push({ speed, time: parseFloat(time) });
       }
     }
@@ -370,7 +372,9 @@ export default function HomeScreen() {
       <View style={styles.labelContainer}>
         <TouchableOpacity
           onPress={() =>
-            setSelectedHelp(selectedHelp === helpKey ? null : helpKey)
+            setSelectedHelp(
+              selectedHelp === helpKey ? null : (helpKey as HelpKey)
+            )
           }
         >
           <Feather
