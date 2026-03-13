@@ -108,7 +108,9 @@ Please open an issue before starting significant work so we can coordinate.
 
 ## License
 
-Distributed under the [MIT License](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
+The source code is available for review and contributions.
+Commercial use, redistribution, and derivative works are not permitted
+without the author's explicit written permission. See[LICENSE](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
 
 ---
 
@@ -178,4 +180,7 @@ Apri un issue prima di iniziare un lavoro significativo, così possiamo coordina
 
 ## Licenza
 
-Distribuito sotto [licenza MIT](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
+Il codice sorgente è disponibile per consultazione e contribuzione. 
+Uso commerciale, ridistribuzione e opere derivate non sono permessi 
+senza autorizzazione scritta esplicita dell'autore. Vedi [LICENSE](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
+
