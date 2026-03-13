@@ -43,8 +43,21 @@
     "minRPM_placeholder": "Enter the minimum RPM",
     "maxRPM_placeholder": "Enter the maximum RPM",
     "coppia_massima": "Max Torque",
-    "help_minrpm": "Number of revolutions per minute (RPM) at which the engine starts delivering power",
-    "help_maxrpm": "Number of revolutions per minute (RPM) at which the engine can operate before reaching the safety limit or engine efficiency",
+    "help_minrpm": "Minimum RPM at which the engine starts delivering power",
+    "help_maxrpm": "Maximum RPM before the engine reaches its safety or efficiency limit",
+
+    "advanced_params": "Advanced Parameters",
+
+    "engine_type": "Engine Type",
+    "engine_petrol": "Petrol",
+    "engine_diesel": "Diesel",
+    "engine_electric": "Electric",
+
+    "aspiration": "Aspiration",
+    "aspiration_natural": "Natural",
+    "aspiration_turbo": "Turbo",
+    "aspiration_supercharger": "Supercharged",
+    "aspiration_biturbo": "Biturbo",
 
     "chart_0_100_desc": "Graph showing time to reach each speed from 0 to 100 km/h.",
     "chart_0_100_legend": "Time to reach 100 km/h",

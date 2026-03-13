@@ -10,10 +10,10 @@ i18n
       en: { translation: en },
       it: { translation: it },
     },
-    lng: 'it',  // Lingua predefinita
-    fallbackLng: 'it',  // Lingua di fallback
+    lng: 'it', 
+    fallbackLng: 'it',  
     interpolation: {
-      escapeValue: false, // React già gestisce l'escape
+      escapeValue: false, 
     },
   });
 

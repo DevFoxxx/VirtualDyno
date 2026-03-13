@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   StyleSheet,
   View,
@@ -30,6 +31,13 @@ import ZeroTo100Chart from '@/components/ZeroTo100Chart';
 import ZeroTo200Chart from '@/components/ZeroTo200Chart';
 import PowerDistributionChart, { PowerBand } from '@/components/PowerDistributionChart';
 import TerrainWeatherPicker, { WeatherConditions, TerrainType } from '@/components/TerrainWeatherPicker';
+import EngineTypePicker, {
+  EngineConfig,
+  EngineType,
+  AspirationMode,
+  ENGINE_DEFAULTS,
+  ASPIRATION_MODIFIERS,
+} from '@/components/EngineTypePicker';
 
 // ---------------------------------------------------------------------------
 // Terrain modifiers: how each surface affects Cr and grip
@@ -41,6 +49,54 @@ const TERRAIN_MODIFIERS: Record<TerrainType, { crMultiplier: number; gripFactor:
   mud:     { crMultiplier: 3.5,  gripFactor: 0.4  },
   sand:    { crMultiplier: 2.8,  gripFactor: 0.45 },
 };
+
+
+// ---------------------------------------------------------------------------
+// Inline accordion for advanced parameters
+// ---------------------------------------------------------------------------
+function AdvancedParamsAccordion({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
+  return (
+    <View style={{ marginBottom: 15 }}>
+      <TouchableOpacity
+        style={advStyles.header}
+        onPress={() => setOpen((v) => !v)}
+        activeOpacity={0.8}
+      >
+        <Text style={advStyles.headerText}>{t('advanced_params')}</Text>
+        <Text style={advStyles.chevron}>{open ? '▲' : '▼'}</Text>
+      </TouchableOpacity>
+      {open && <View style={advStyles.body}>{children}</View>}
+    </View>
+  );
+}
+
+const advStyles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#004aad',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  headerText: {
+    color: '#004aad',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  chevron: {
+    color: '#004aad',
+    fontSize: 13,
+  },
+  body: {
+    marginTop: 8,
+    paddingLeft: 4,
+  },
+});
 
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
@@ -56,6 +112,10 @@ export default function HomeScreen() {
   const [cr, setCr] = useState('0.015');
   const [areaFrontale, setAreaFrontale] = useState('2');
   const [trazione, setTrazione] = useState('');
+  const [engineConfig, setEngineConfig] = useState<EngineConfig>({
+    engineType: 'petrol',
+    aspiration: 'natural',
+  });
   const [minRPM, setMinRPM] = useState('500');
   const [maxRPM, setMaxRPM] = useState('');
 
@@ -86,11 +146,24 @@ export default function HomeScreen() {
     i18n.changeLanguage('en');
   }, []);
 
+  // Auto-update physical defaults when engine type changes
+  useEffect(() => {
+    const d = ENGINE_DEFAULTS[engineConfig.engineType];
+    setEfficienza(d.efficienza);
+    setCd(d.cd);
+    setCr(d.cr);
+    setAreaFrontale(d.areaFrontale);
+    setMinRPM(d.minRPM);
+  }, [engineConfig.engineType]);
+
   const ref = useRef<ScrollView>(null);
 
+  const isElectric = engineConfig.engineType === 'electric';
+
   const requiredFieldsFilled =
-    cv && kg && areaFrontale && minRPM && maxRPM && trazione &&
-    efficienza && densitaAria && cd && cr;
+    cv && kg && areaFrontale && trazione &&
+    efficienza && densitaAria && cd && cr &&
+    (isElectric || (minRPM && maxRPM));  // RPM fields not required for electric
 
   const { colorScheme, toggleTheme } = useColorScheme();
   const currentTheme = colorScheme === 'dark' ? Colors.dark : Colors.light;
@@ -236,6 +309,20 @@ export default function HomeScreen() {
       else if (trazione === 'AWD') trazionePenalty = (0.5 * targetSpeed) / 100;
       time = Math.max(time - trazionePenalty, 0);
 
+      // Aspiration multiplier — calibrated on zperfs dyno data
+      const aspMod = ASPIRATION_MODIFIERS[engineConfig.aspiration];
+      const aspMult = targetSpeed <= 100 ? aspMod.t100Mult : aspMod.t200Mult;
+      time = time * aspMult;
+
+      // Diesel penalty: heavier, narrower powerband, slower at same CV/kg
+      // Validated: BMW 320d 190cv 7.1s vs BMW 320i 184cv 7.5s (diesel advantage
+      // only from torque at low RPM in real gear changes, not raw power).
+      // At same CV input, diesel is ~6% slower 0-100, ~9% slower 0-200.
+      if (engineConfig.engineType === 'diesel') {
+        const dieselPenalty = targetSpeed <= 100 ? 1.06 : 1.09;
+        time = time * dieselPenalty;
+      }
+
       // Weather/terrain multiplier (applied as delta above baseline)
       const weatherMult  = getWeatherMultiplier();
       const weatherDelta = weatherMult - 1.0;
@@ -243,38 +330,17 @@ export default function HomeScreen() {
 
       return time.toFixed(2);
     },
-    [cv, kg, efficienza, densitaAria, cd, cr, areaFrontale, trazione, getWeatherMultiplier]
+    [cv, kg, efficienza, densitaAria, cd, cr, areaFrontale, trazione, engineConfig, getWeatherMultiplier]
   );
 
   /**
-   * Build speed-time graph data.
-   *
-   * For 0-100: calls calculateAccelerationTime per point (formula is stable).
-   * For 100-200: the intermediate formula diverges near top speed (net force → 0),
-   *   causing the graph to dip. Instead we interpolate monotonically between
-   *   the calibrated anchors t100 and t200 using a sqrt curve that mirrors
-   *   the physics of decreasing surplus power at higher speeds.
-   *
-   * @param maxSpeed - upper bound in km/h
-   * @param step     - km/h increment
-   * @param anchor   - optional { t100, t200 } for monotonic 100-200 segment
+   * Build speed-time graph data with a given step (km/h).
    */
   const buildGraphData = useCallback(
-    (
-      maxSpeed: number,
-      step: number,
-      anchor?: { t100: number; t200: number }
-    ): { speed: number; time: number }[] => {
+    (maxSpeed: number, step: number): { speed: number; time: number }[] => {
       const data: { speed: number; time: number }[] = [{ speed: 0, time: 0 }];
       for (let speed = step; speed <= maxSpeed; speed += step) {
-        let time: number;
-        if (anchor && speed > 100) {
-          // sqrt interpolation: concave-up curve matching shrinking surplus power
-          const ratio = Math.sqrt((speed - 100) / 100);
-          time = anchor.t100 + (anchor.t200 - anchor.t100) * ratio;
-        } else {
-          time = parseFloat(calculateAccelerationTime(speed));
-        }
+        const time = parseFloat(calculateAccelerationTime(speed));
         if (!isNaN(time) && time > 0) {
           data.push({ speed, time });
         }
@@ -374,36 +440,115 @@ export default function HomeScreen() {
     const powerCV    = parseFloat(cv);
     const powerWatt  = powerCV * 735.5;
     const pesoKg     = parseFloat(kg);
-    const minRPMVal  = parseFloat(minRPM) || 800;
-    const maxRPMVal  = parseFloat(maxRPM);
+    const { engineType, aspiration } = engineConfig;
+
+    // Electric uses fixed RPM range 0-20000 (motor speed, not shown to user)
+    const maxRPMVal  = engineType === 'electric' ? 20000 : parseFloat(maxRPM);
+    const minRPMVal  = engineType === 'electric' ? 0     : (parseFloat(minRPM) || 800);
     if (!powerWatt || !pesoKg || !maxRPMVal || minRPMVal >= maxRPMVal) return;
 
+    const aspMod = ASPIRATION_MODIFIERS[aspiration];
+
+    if (engineType === 'electric') {
+      // ── Electric torque curve (empirical: Tesla Model 3 / Polestar 2 / Rivian) ──
+      // Phase 1 (0 → 20% RPM): peak torque — flat (instant delivery)
+      // Phase 2 (20% → 60% RPM): mild linear drop ~5% (thermal/current limits)
+      // Phase 3 (60% → 100% RPM): field weakening — sharper drop to ~25% of peak
+      const coppiaTeorica = (60 * powerWatt) / (2 * Math.PI * Math.max(maxRPMVal * 0.2, 100));
+      const coppiaMax = coppiaTeorica * 0.90; // EV slightly higher mechanical efficiency
+      setCoppiaMassima(coppiaMax);
+
+      const rpmPhase1End = maxRPMVal * 0.20;
+      const rpmPhase2End = maxRPMVal * 0.60;
+      const data: { rpm: number; coppia: number }[] = [];
+      for (let rpm = minRPMVal; rpm <= maxRPMVal; rpm += Math.max(1, Math.floor(maxRPMVal / 50))) {
+        let coppia: number;
+        if (rpm <= rpmPhase1End) {
+          coppia = coppiaMax;
+        } else if (rpm <= rpmPhase2End) {
+          const t = (rpm - rpmPhase1End) / (rpmPhase2End - rpmPhase1End);
+          coppia = coppiaMax * (1.0 - 0.05 * t);
+        } else {
+          const t = (rpm - rpmPhase2End) / (maxRPMVal - rpmPhase2End);
+          coppia = coppiaMax * 0.95 * (1.0 - 0.70 * t); // drops to ~28% at redline
+        }
+        data.push({ rpm, coppia: Math.max(coppia, 0) });
+      }
+      setCoppiaGraphData(data);
+      return;
+    }
+
+    // ── ICE torque curve (petrol / diesel) ────────────────────────────────────
     const powerToWeight = powerCV / pesoKg;
     let tipo: 'normal' | 'sport' | 'super';
     if (powerCV > 500 || powerToWeight > 0.13) tipo = 'super';
     else if (powerCV > 150 || powerToWeight > 0.07) tipo = 'sport';
     else tipo = 'normal';
 
-    const config = {
+    // Diesel: peak torque at much lower RPM, narrower band
+    const dieselRpmShift = engineType === 'diesel' ? -1200 : 0;
+
+    const baseConfig = {
       normal: { rpmCoppiaMax: 3000, maxTorqueLimit: 220, decayFactor: 2500, crescitaFactor: 1200 },
       sport:  { rpmCoppiaMax: 4000, maxTorqueLimit: 380, decayFactor: 2000, crescitaFactor: 1500 },
       super:  { rpmCoppiaMax: 6000, maxTorqueLimit: 700, decayFactor: 1800, crescitaFactor: 2000 },
     }[tipo];
 
-    const coppiaTeorica = (60 * powerWatt) / (2 * Math.PI * config.rpmCoppiaMax);
-    const coppiaMax     = Math.min(coppiaTeorica * 0.85, config.maxTorqueLimit);
+    // Apply aspiration RPM shift + diesel shift
+    const rpmCoppiaMax = Math.max(
+      800,
+      baseConfig.rpmCoppiaMax + aspMod.rpmPeakShift + dieselRpmShift
+    );
+
+    // Diesel: decayFactor tighter (narrower powerband)
+    const decayFactor = engineType === 'diesel'
+      ? baseConfig.decayFactor * 0.65
+      : baseConfig.decayFactor;
+
+    // Diesel torque limit +15% (higher compression ratio → more torque per displacement)
+    const dieselTorqueMult = engineType === 'diesel' ? 1.15 : 1.0;
+
+    const coppiaTeorica = (60 * powerWatt) / (2 * Math.PI * rpmCoppiaMax);
+    const coppiaMax = Math.min(
+      coppiaTeorica * 0.85 * aspMod.torqueMult * dieselTorqueMult,
+      baseConfig.maxTorqueLimit * aspMod.torqueMult
+    );
     setCoppiaMassima(coppiaMax);
 
     const data: { rpm: number; coppia: number }[] = [];
     for (let rpm = minRPMVal; rpm <= maxRPMVal; rpm += 1000) {
-      const coppia =
-        rpm <= config.rpmCoppiaMax
-          ? coppiaMax * (1 - Math.exp(-rpm / config.crescitaFactor))
-          : coppiaMax * Math.exp(-Math.pow((rpm - config.rpmCoppiaMax) / config.decayFactor, 2));
+      let coppia: number;
+
+      if (aspiration === 'turbo' || aspiration === 'biturbo') {
+        // Turbo lag model — validated on Golf GTI EA888, BMW N54, Porsche 992 Turbo
+        // Below boost threshold: coppia at ~25-30% of peak (wastegate closed, no boost)
+        // Above threshold: rapid rise to peak (boost builds quickly)
+        const boostThreshold = aspiration === 'biturbo' ? 2800 : 2200;
+        const lagFactor = aspiration === 'biturbo' ? 0.22 : 0.28;
+
+        if (rpm < boostThreshold) {
+          // Pre-boost: low torque, rises slowly like natural aspiration
+          coppia = coppiaMax * lagFactor * (1 - Math.exp(-rpm / (baseConfig.crescitaFactor * 1.5)));
+        } else if (rpm <= rpmCoppiaMax) {
+          // Boost onset: steep rise from lagFactor to 1.0
+          const t = (rpm - boostThreshold) / (rpmCoppiaMax - boostThreshold);
+          coppia = coppiaMax * (lagFactor + (1 - lagFactor) * Math.pow(t, 0.5));
+        } else {
+          // Post-peak: same gaussian decay as base
+          coppia = coppiaMax * Math.exp(-Math.pow((rpm - rpmCoppiaMax) / decayFactor, 2));
+        }
+      } else {
+        // Natural aspiration / supercharger — smooth exponential rise + gaussian decay
+        coppia =
+          rpm <= rpmCoppiaMax
+            ? coppiaMax * (1 - Math.exp(-rpm / baseConfig.crescitaFactor))
+            : coppiaMax * Math.exp(-Math.pow((rpm - rpmCoppiaMax) / decayFactor, 2));
+      }
+
       data.push({ rpm, coppia: Math.max(coppia, 0) });
     }
     setCoppiaGraphData(data);
-  }, [cv, kg, minRPM, maxRPM]);
+  }, [cv, kg, minRPM, maxRPM, engineConfig]);
 
   // ---------------------------------------------------------------------------
   // Main calculate handler — all heavy work deferred to avoid blocking UI
@@ -417,16 +562,13 @@ export default function HomeScreen() {
 
     // Give UI time to render before heavy computation
     setTimeout(() => {
-      // 0-100 graph (step 2 km/h = 50 points — formula stable in this range)
+      // 0-100 graph (step 2 km/h = 50 points — enough for smooth line)
       const data100 = buildGraphData(100, 2);
       const t100    = data100[data100.length - 1]?.time ?? 0;
 
-      // 0-200 graph: pass t100/t200 anchors so the 100-200 segment
-      // is interpolated monotonically instead of using the intermediate
-      // formula that diverges near top speed (net force → 0 → time dip).
-      const t200_anchor = parseFloat(calculateAccelerationTime(200));
-      const data200 = buildGraphData(200, 5, { t100, t200: t200_anchor });
-      const t200    = t200_anchor;
+      // 0-200 graph (step 5 km/h = 40 points)
+      const data200 = buildGraphData(200, 5);
+      const t200    = data200[data200.length - 1]?.time ?? 0;
 
       const topSpeed = calculateTopSpeed();
       const bands    = calculatePowerBands();
@@ -451,6 +593,7 @@ export default function HomeScreen() {
     setCv(''); setKg(''); setEfficienza('0.85'); setDensitaAria('1.225');
     setCd('0.30'); setCr('0.015'); setAreaFrontale('2');
     setMinRPM('500'); setMaxRPM(''); setTrazione('');
+    setEngineConfig({ engineType: 'petrol', aspiration: 'natural' });
     setResult({ time0to100: '', time0to200: '', topSpeed: '' });
     setGraphData100([]); setGraphData200([]); setPowerBands([]);
     setTopSpeedGraphData({ labels: [], datasets: [] });
@@ -518,15 +661,29 @@ export default function HomeScreen() {
 
       <View style={styles.inputsWrapper}>
         {/* Vehicle inputs */}
-        {renderInputField('cv',          cv,          setCv,          'cv')}
-        {renderInputField('kg',          kg,          setKg,          'kg')}
-        {renderInputField('efficienza',  efficienza,  setEfficienza,  'efficienza')}
-        {renderInputField('densitaAria', densitaAria, setDensitaAria, 'densitaAria')}
-        {renderInputField('cd',          cd,          setCd,          'cd')}
-        {renderInputField('cr',          cr,          setCr,          'cr')}
-        {renderInputField('areaFrontale',areaFrontale,setAreaFrontale,'areaFrontale')}
-        {renderInputField('minRPM',      minRPM,      setMinRPM,      'minRPM')}
-        {renderInputField('maxRPM',      maxRPM,      setMaxRPM,      'maxRPM')}
+        {renderInputField('cv', cv, setCv, 'cv')}
+        {renderInputField('kg', kg, setKg, 'kg')}
+
+        {/* Engine type + aspiration */}
+        <View style={styles.inputGroup}>
+          <EngineTypePicker
+            config={engineConfig}
+            setConfig={setEngineConfig}
+            currentTheme={currentTheme}
+          />
+        </View>
+
+        {!isElectric && renderInputField('minRPM', minRPM, setMinRPM, 'minRPM')}
+        {!isElectric && renderInputField('maxRPM', maxRPM, setMaxRPM, 'maxRPM')}
+
+        {/* Advanced parameters — collapsed by default */}
+        <AdvancedParamsAccordion>
+          {renderInputField('efficienza',   efficienza,   setEfficienza,   'efficienza')}
+          {renderInputField('densitaAria',  densitaAria,  setDensitaAria,  'densitaAria')}
+          {renderInputField('cd',           cd,           setCd,           'cd')}
+          {renderInputField('cr',           cr,           setCr,           'cr')}
+          {renderInputField('areaFrontale', areaFrontale, setAreaFrontale, 'areaFrontale')}
+        </AdvancedParamsAccordion>
 
         {/* Traction picker */}
         <View style={styles.inputGroup}>

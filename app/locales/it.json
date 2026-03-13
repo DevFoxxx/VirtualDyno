@@ -43,8 +43,21 @@
     "minRPM_placeholder": "Inserisci il minimo RPM",
     "maxRPM_placeholder": "Inserisci il massimo RPM",
     "coppia_massima": "Coppia Massima",
-    "help_minrpm": "Numero di giri al minuto (RPM) minimo a cui il motore inizia a erogare potenza",
-    "help_maxrpm": "Numero di giri al minuto (RPM) massimo a cui il motore può operare prima di raggiungere il limite di sicurezza o l'efficienza del motore",
+    "help_minrpm": "RPM minimo a cui il motore inizia a erogare potenza",
+    "help_maxrpm": "RPM massimo prima che il motore raggiunga il limite di sicurezza o efficienza",
+
+    "advanced_params": "Parametri Avanzati",
+
+    "engine_type": "Tipo Motore",
+    "engine_petrol": "Benzina",
+    "engine_diesel": "Diesel",
+    "engine_electric": "Elettrico",
+
+    "aspiration": "Alimentazione",
+    "aspiration_natural": "Aspirato",
+    "aspiration_turbo": "Turbo",
+    "aspiration_supercharger": "Compressore",
+    "aspiration_biturbo": "Biturbo",
 
     "chart_0_100_desc": "Grafico del tempo impiegato per raggiungere ogni velocità da 0 a 100 km/h.",
     "chart_0_100_legend": "Tempo per raggiungere i 100 km/h",

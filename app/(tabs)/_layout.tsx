@@ -13,7 +13,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarStyle: { display: 'none' }, // Nasconde completamente la barra delle schede
+        tabBarStyle: { display: 'none' },
         headerShown: false,
       }}
     >
