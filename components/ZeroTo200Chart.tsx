@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text, useWindowDimensions } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 
-interface TimeTo100GraphProps {
+interface ZeroTo200ChartProps {
   graphData: { speed: number; time: number }[];
   currentTheme: {
     placeHolderColor: string;
@@ -14,7 +14,7 @@ interface TimeTo100GraphProps {
   legendTitle: string;
 }
 
-const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
+const ZeroTo200Chart: React.FC<ZeroTo200ChartProps> = ({
   graphData,
   currentTheme,
   title,
@@ -24,20 +24,19 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
   if (graphData.length === 0) return null;
 
   const { width: screenWidth } = useWindowDimensions();
-  const chartWidth = screenWidth - 80; // account for padding + yAxis labels
+  const chartWidth = screenWidth - 80;
 
   const maxTime = Math.ceil(Math.max(...graphData.map((d) => d.time)));
 
-  // Sample every 10 points for labels, keep enough for smooth line
+  // Sample every 20 km/h for readability on 0-200 range
   const sampledData = graphData
-    .filter((_, index) => index % 10 === 0)
+    .filter((_, index) => index % 4 === 0)
     .map((item) => ({
       value: item.time,
       label: String(item.speed),
-      dataPointText: String(item.time),
+      dataPointText: item.time.toFixed(1),
     }));
 
-  // Dynamic spacing so points fill the full chart width
   const dynamicSpacing = Math.floor((chartWidth - 20) / Math.max(sampledData.length - 1, 1));
 
   return (
@@ -82,20 +81,15 @@ const TimeTo100Graph: React.FC<TimeTo100GraphProps> = ({
             textShiftY={-10}
             disableScroll={true}
             yAxisLabelSuffix=' s'
-            maxValue={maxTime + 1}
-            noOfSections={maxTime + 1}
+            maxValue={maxTime + 2}
+            noOfSections={Math.min(maxTime + 2, 10)}
             spacing={dynamicSpacing}
           />
         </View>
 
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
-            <View
-              style={[
-                styles.legendColor,
-                { backgroundColor: 'rgba(0, 74, 173, 1)' },
-              ]}
-            />
+            <View style={[styles.legendColor, { backgroundColor: '#004aad' }]} />
             <Text style={[styles.legendText, { color: currentTheme.text }]}>
               {legendTitle}
             </Text>
@@ -153,4 +147,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TimeTo100Graph;
+export default ZeroTo200Chart;

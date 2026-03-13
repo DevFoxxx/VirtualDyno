@@ -1,141 +1,181 @@
-# <img src="assets/images/icon.png" alt="icon" width="100" height="100" /> 
-# VirtualDyno
+# <img src="assets/images/icon.png" alt="icon" width="50" height="50" /> VirtualDyno
 
-![React Native](https://img.shields.io/badge/React%20Native-000000?style=for-the-badge&logo=react&logoColor=61DAFB) ![WIP](https://img.shields.io/badge/WIP%20-%20In%20progress-green) ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
+![React Native](https://img.shields.io/badge/React%20Native-000000?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+![WIP](https://img.shields.io/badge/Status-WIP-orange?style=for-the-badge)
 
-This application is in its early stages and is continuously being developed. It will be regularly updated, both functionally and visually. Consider the current content as the initial phase.
+> A mobile vehicle performance simulator — no dyno required.
 
-## Screenshot (development phase, light/dark theme)
- 
-![alt text](image.png)![alt text](image-1.png)![alt text](image-2.png)![alt text](image-3.png)![alt text](image-4.png)![alt text](image-5.png)
+---
 
-# 🇬🇧 EN 
-## Description
-VirtualDyno is an advanced application designed to calculate and analyze vehicle performance using parameters such as power, weight, aerodynamic coefficient, and traction. With this data, it is possible to accurately estimate the 0-100 km/h acceleration time, specific power, average acceleration, and other key indicators to deeply understand a vehicle's dynamics. The primary goal of VirtualDyno is to provide a powerful yet easily accessible simulation tool for both hobbyists and professionals in the automotive sector, such as engineers and performance testers.
+## Screenshots
 
-Being open-source, the software offers the possibility to be customized and improved by the community. Developers can contribute to the app's evolution, adding new features and tailoring it to specific needs. Users, therefore, benefit from an always-updated tool that meets various requirements. VirtualDyno is perfect for car enthusiasts, drivers, research and development teams, and automotive industry professionals who want to test and compare vehicles without the need for physical test benches. The interface is simple and intuitive, yet powerful, offering quick and accurate simulations.
+| Light            | Dark             |
+|------------------|------------------|
+| ![](image.png)  | ![](image-1.png) |
+| ![](image-2.png) | ![](image-3.png) |
+| ![](image-4.png) | ![](image-5.png) |
+| ![](image-6.png) | ![](image-7.png) |
 
-The open-source approach and continuous evolution of the software make VirtualDyno an essential resource for anyone looking to explore vehicle performance in an economical, precise, and innovative way.
+---
 
-One of the most interesting aspects of VirtualDyno is its ability to find physical formulas that adapt to reality, without making the model too complex or unrealistic. The app stands out for its balance between precision and simplicity, offering reliable simulations without overwhelming the user with too many variables or mathematical complexities, making it a practical and accessible tool for everyone.
+# 🇬🇧 English
+
+## What is VirtualDyno?
+
+VirtualDyno is an open-source mobile app that simulates vehicle performance from a set of physical parameters — power, weight, aerodynamics, drivetrain type, terrain, and weather. It gives you 0-100 km/h and 0-200 km/h times, theoretical top speed, a torque curve, and a power distribution analysis across speed bands, all without needing access to a physical dynamometer.
+
+The physics model is deliberately calibrated to stay close to real-world data while remaining interpretable. Results are validated against reference vehicles (Ferrari 488, Lamborghini Huracán, BMW M3, Porsche 911 GT3, VW Golf GTI, Toyota GR86) using published zperfs data, and the formulas are documented in the source code.
 
 ## Features
-- Insert main vehicle data (CV, weight, efficiency, air density, Cd, Cr, frontal area, traction)
-- Calculate vehicle performance
-- Switch between Italian and English language
-- Performance chart (under development)
 
-## Technologies used
-- **React Native** for mobile development
-- **React Native Picker** for traction selection
-- **react-i18next** for language management
-- **react-native-chart-kit** for data visualization (in the future)
+- **0-100 km/h** time with animated speed-time chart
+- **0-200 km/h** time with animated speed-time chart (monotonic interpolation — no dip artifacts)
+- **Theoretical top speed** via binary search with calibrated drivetrain loss factor
+- **Torque curve** across the full RPM range, with peak and decline highlighted
+- **Power distribution chart** — surplus vs. required power across 0-50 / 50-100 / 100-150 / 150-200 km/h bands
+- **Terrain & weather simulation** — asphalt, wet, snow, mud, sand; temperature, headwind, rain toggle
+- **Traction type** — FWD, RWD, AWD with calibrated grip penalties
+- **Light / Dark theme**
+- **English / Italian** language switch
+
+## Physics model
+
+| Output | Method |
+|--------|--------|
+| 0-100 km/h | Empirical formula: `t = v/a` at v=100 km/h, net force from `P·η/v − F_aero − F_roll` |
+| 0-200 km/h | Calibrated scaler on t100: `t200 = t100 × clamp(1.9516 + 0.2082/(cv/kg), 2.1, 3.8)` |
+| Top speed | Binary search with `tsFactor = clamp(0.95 − 0.52·(cv/kg), 0.65, 0.90)` |
+| Torque curve | Exponential rise + Gaussian decay around peak RPM |
+| Terrain/weather | Post-multiplier on time: grip factor, temperature correction, headwind, rain |
+
+## Technologies
+
+| Library | Purpose |
+|---------|---------|
+| React Native + Expo | Mobile framework |
+| TypeScript | Type safety |
+| react-i18next | Internationalisation (EN / IT) |
+| react-native-gifted-charts | Line charts and bar charts |
+| @react-native-community/slider | Terrain & weather sliders |
+| react-native-reanimated | Animations |
 
 ## Installation
-1. Clone the repository:
+
 ```sh
 git clone https://github.com/DevFoxxx/VirtualDyno.git
 cd VirtualDyno
-```
-2. Install dependencies:
-```sh
 npm install
-```
-3. Run the app with Expo:
-```sh
 npx expo start
 ```
-4. Choose to run the app on your Android emulator or a real device directly from the Expo developer tools.
 
-## Available Translations
-- Italian
-- English
+Scan the QR code with Expo Go on Android or iOS, or press `a` for an Android emulator.
 
-## Upcoming Developments
-1. 0-200 Km/h time + graph
-2. Power distribution analysis across different speed ranges
-3. Performance simulation on various terrain types (asphalt, snow, mud, etc.)
-4. Aerodynamic parameter optimization based on customizable vehicle configurations
-5. Support for advanced vehicle configurations, such as hybrid or electric models
-6. Improvement of simulations under variable weather conditions (rain, wind, temperature)
-7. Data storage for easy access and comparison over time
-8. Data sharing with other users or platforms for collaboration and analysis
+> **Note:** The `@react-native-community/slider` package requires `npx expo install @react-native-community/slider` if not already in your dependencies.
 
-## Contributions
-If you want to contribute, you can create a pull request with your changes or report issues in the "Issues" section of the repository. We're currently looking for people willing to help with the following:
+## Project structure
 
-1. Bug fixing  
-2. Graphics improvement to make it more visually appealing  
-3. Enhancement of physics functions to make them more realistic and simulation-based  
-4. Assisting in the development of future updates
+```
+app/
+  index.tsx                  # Main screen — all calculation logic
+components/
+  AdditionalStats.tsx        # Derived stats (kW, CV/t, distance…)
+  MaxTorqueChart.tsx         # RPM vs torque line chart
+  PowerDistributionChart.tsx # Grouped bar chart by speed band
+  TerrainWeatherPicker.tsx   # Terrain buttons + sliders
+  TheoreticalTopSpeed.tsx    # Power available vs required chart
+  TractionPicker.tsx         # FWD / RWD / AWD icon selector
+  ZeroTo100Chart.tsx         # 0-100 speed-time line chart
+  ZeroTo200Chart.tsx         # 0-200 speed-time line chart
+locales/
+  en.json                    # English translations
+  it.json                    # Italian translations
+```
 
-This project aims to remain free and available for everyone.
+## Contributing
+
+Pull requests are welcome. The areas most open to contribution are:
+
+1. **Physics improvements** — torque-curve-based numerical integration for more accurate intermediate times
+2. **UI / UX** — layout polish, icon update, chart label alignment (see open issues)
+3. **New vehicle profiles** — preset configurations for common cars
+4. **Electric / hybrid support** — different torque delivery model
+5. **Bug fixes** — check the [Issues](https://github.com/DevFoxxx/VirtualDyno/issues) tab
+
+Please open an issue before starting significant work so we can coordinate.
 
 ## License
-This project is distributed under the [MIT license](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
+
+Distributed under the [MIT License](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
 
 ---
-# 🇮🇹 IT
-## Descrizione
-VirtualDyno è un'applicazione avanzata progettata per calcolare e analizzare le performance di un veicolo, utilizzando parametri come potenza, peso, coefficiente aerodinamico e trazione. Grazie a questi dati, è possibile stimare con precisione il tempo di accelerazione 0-100 km/h, la potenza specifica, l'accelerazione media e altri indicatori chiave per comprendere a fondo le dinamiche di un veicolo. L'obiettivo principale di VirtualDyno è fornire uno strumento di simulazione potente, ma facilmente accessibile, per hobbisti e professionisti del settore automobilistico, come ingegneri e tester di performance.
 
-Essendo open-source, il software offre la possibilità di essere personalizzato e migliorato dalla comunità. Gli sviluppatori possono contribuire all'evoluzione dell'app, aggiungendo nuove funzionalità e adattandola alle diverse esigenze. Gli utenti, quindi, possono usufruire di uno strumento sempre aggiornato, in grado di rispondere alle necessità più specifiche. VirtualDyno è perfetto per appassionati di auto, automobilisti, team di ricerca e sviluppo e professionisti dell'industria automobilistica, che vogliono testare e confrontare veicoli senza la necessità di ricorrere a banchi prova fisici. L'interfaccia è semplice ed intuitiva, ma allo stesso tempo potente, offrendo simulazioni rapide e precise.
+# 🇮🇹 Italiano
 
-L'approccio open-source e l'evoluzione continua del software fanno di VirtualDyno una risorsa indispensabile per chi desidera esplorare le performance dei veicoli in modo economico, preciso e innovativo.
+## Cos'è VirtualDyno?
 
-Uno degli aspetti più interessanti di VirtualDyno è la capacità di trovare formule fisiche in grado di adattarsi alla realtà, senza rendere il modello troppo complesso o irrealistico. L'app si distingue per il suo equilibrio tra precisione e semplicità, offrendo simulazioni affidabili senza sovraccaricare l'utente con troppe variabili o complessità matematiche, rendendola uno strumento pratico e accessibile per tutti.
+VirtualDyno è un'app mobile open-source che simula le prestazioni di un veicolo a partire da parametri fisici — potenza, peso, aerodinamica, tipo di trazione, fondo stradale e condizioni meteo. Fornisce i tempi 0-100 km/h e 0-200 km/h, la velocità massima teorica, la curva di coppia e un'analisi della distribuzione della potenza per fasce di velocità, senza bisogno di un banco prova fisico.
+
+Il modello fisico è calibrato per avvicinarsi ai dati reali mantenendo la leggibilità delle formule. I risultati sono validati su veicoli di riferimento (Ferrari 488, Lamborghini Huracán, BMW M3, Porsche 911 GT3, VW Golf GTI, Toyota GR86) tramite dati zperfs, e le formule sono documentate nel codice sorgente.
 
 ## Funzionalità
-- Inserimento dei dati principali del veicolo (CV, peso, efficienza, densità dell'aria, Cd, Cr, area frontale, trazione)
-- Calcolo delle prestazioni del veicolo
-- Cambio lingua tra Italiano e Inglese tramite uno switch
-- Grafico delle prestazioni (in fase di sviluppo)
 
-## Tecnologie utilizzate
-- **React Native** per lo sviluppo mobile
-- **React Native Picker** per la selezione della trazione
-- **react-i18next** per la gestione delle lingue
-- **react-native-chart-kit** per la visualizzazione dei dati (in futuro)
+- **0-100 km/h** con grafico velocità-tempo animato
+- **0-200 km/h** con grafico velocità-tempo animato (interpolazione monotonica — nessun artefatto di discesa)
+- **Velocità massima teorica** tramite ricerca binaria con fattore di perdita calibrato
+- **Curva di coppia** sull'intero range RPM, con picco e declino evidenziati
+- **Grafico distribuzione potenza** — potenza residua vs. potenza richiesta per fasce 0-50 / 50-100 / 100-150 / 150-200 km/h
+- **Simulazione fondo & meteo** — asfalto, bagnato, neve, fango, sabbia; temperatura, vento frontale, pioggia
+- **Tipo di trazione** — FWD, RWD, AWD con penalità di aderenza calibrate
+- **Tema chiaro / scuro**
+- **Lingua inglese / italiana**
+
+## Modello fisico
+
+| Output | Metodo |
+|--------|--------|
+| 0-100 km/h | Formula empirica: `t = v/a` a v=100 km/h, forza netta da `P·η/v − F_aero − F_roll` |
+| 0-200 km/h | Scaler calibrato su t100: `t200 = t100 × clamp(1.9516 + 0.2082/(cv/kg), 2.1, 3.8)` |
+| Velocità max | Ricerca binaria con `tsFactor = clamp(0.95 − 0.52·(cv/kg), 0.65, 0.90)` |
+| Curva coppia | Salita esponenziale + decadimento gaussiano attorno al picco RPM |
+| Fondo/meteo | Post-moltiplicatore sul tempo: fattore grip, correzione temperatura, vento, pioggia |
+
+## Tecnologie
+
+| Libreria | Scopo |
+|---------|-------|
+| React Native + Expo | Framework mobile |
+| TypeScript | Tipizzazione |
+| react-i18next | Internazionalizzazione (EN / IT) |
+| react-native-gifted-charts | Grafici a linee e a barre |
+| @react-native-community/slider | Slider per fondo e meteo |
+| react-native-reanimated | Animazioni |
 
 ## Installazione
-1. Clona il repository:
-   ```sh
-   git clone https://github.com/DevFoxxx/VirtualDyno.git
-   cd VirtualDyno
-   ```
-2. Installa le dipendenze:
-   ```sh
-   npm install
-   ```
-3. Avvia l'app con Expo:
-   ```sh
-   npx expo start
-   ```
-4. Seleziona l'opzione per avviare l'app sul tuo emulatore Android o su un dispositivo reale direttamente dagli strumenti di sviluppo Expo.
 
-## Traduzioni disponibili
-- Italiano
-- Inglese
+```sh
+git clone https://github.com/DevFoxxx/VirtualDyno.git
+cd VirtualDyno
+npm install
+npx expo start
+```
 
-## Prossimi Sviluppi
-1. Tempo 0-200 Km/h + grafico
-2. Analisi della distribuzione della potenza su diverse gamme di velocità
-3. Simulazione delle performance su differenti tipologie di terreno (asfalto, neve, fango, ecc.)
-4. Ottimizzazione dei parametri aerodinamici in base a configurazioni personalizzabili del veicolo
-5. Supporto per configurazioni veicolari avanzate, come modelli ibridi o elettrici
-6. Miglioramento delle simulazioni in condizioni climatiche variabili (pioggia, vento, temperatura)
-7. Memorizzazione dei dati per un facile accesso e confronto nel tempo
-8. Condivisione dei dati con altri utenti o piattaforme per collaborazioni e analisi
+Scansiona il QR code con Expo Go su Android o iOS, oppure premi `a` per un emulatore Android.
 
 ## Contributi
-Se vuoi contribuire, puoi creare una pull request con le tue modifiche o segnalare problemi nella sezione "Issues" del repository. Siamo attualmente alla ricerca di persone disposte ad aiutare con i seguenti aspetti:
 
-1. Correzione di bug
-2. Miglioramento della grafica per renderla più attraente
-3. Miglioramento della fisica delle funzioni rendendole più realistiche e simulative
-4. Aiutare nello sviluppo dei prossimi sviluppi
+Le pull request sono benvenute. Le aree più aperte ai contributi sono:
 
-Questo progetto mira a rimanere gratuito e disponibile per tutti.
+1. **Miglioramenti fisici** — integrazione numerica basata sulla curva di coppia per tempi intermedi più precisi
+2. **UI / UX** — rifinitura del layout, aggiornamento icone, allineamento etichette grafici (vedi issues aperti)
+3. **Profili veicolo preimpostati** — configurazioni per auto comuni
+4. **Supporto elettrico / ibrido** — modello di erogazione coppia differente
+5. **Bug fix** — controlla la sezione [Issues](https://github.com/DevFoxxx/VirtualDyno/issues)
+
+Apri un issue prima di iniziare un lavoro significativo, così possiamo coordinarci.
 
 ## Licenza
-Questo progetto è distribuito sotto la [licenza MIT](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
+
+Distribuito sotto [licenza MIT](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).

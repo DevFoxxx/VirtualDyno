@@ -21,6 +21,7 @@
     "calcola": "CALCOLA",
     "reset": "RESETTA",
     "tempo": "Tempo da 0 a 100 km/h:",
+    "seconds": "secondi",
     "power_kw": "Potenza in kW",
     "power_kgcv": "Peso/Potenza",
     "power": "Potenza specifica",
@@ -35,7 +36,7 @@
     "help_areaFrontale": "Area frontale in m² (tipicamente 2-2.5 m² per auto)",
     "help_trazione": "Il tipo di trazione influenza distribuzione del peso e aderenza",
     "error_fields": "Compila tutti i campi obbligatori (CV, KG, Area frontale)",
-    "top_speed": "Velocità massima teorica",
+    "top_speed": "Velocità massima teorica:",
     "risultati": "Risultati simulazione",
     "minRPM": "Min RPM",
     "maxRPM": "Max RPM",
@@ -43,6 +44,27 @@
     "maxRPM_placeholder": "Inserisci il massimo RPM",
     "coppia_massima": "Coppia Massima",
     "help_minrpm": "Numero di giri al minuto (RPM) minimo a cui il motore inizia a erogare potenza",
-    "help_maxrpm": "Numero di giri al minuto (RPM) massimo a cui il motore può operare prima di raggiungere il limite di sicurezza o l'efficienza del motore"
+    "help_maxrpm": "Numero di giri al minuto (RPM) massimo a cui il motore può operare prima di raggiungere il limite di sicurezza o l'efficienza del motore",
+
+    "chart_0_100_desc": "Grafico del tempo impiegato per raggiungere ogni velocità da 0 a 100 km/h.",
+    "chart_0_100_legend": "Tempo per raggiungere i 100 km/h",
+    "chart_0_200_desc": "Grafico del tempo impiegato per raggiungere ogni velocità da 0 a 200 km/h.",
+    "chart_0_200_legend": "Tempo per raggiungere i 200 km/h",
+    "chart_topspeed_desc": "Relazione tra velocità, potenza richiesta e potenza disponibile.",
+    "chart_topspeed_legend": "Velocità (km/h)",
+    "chart_power_title": "Distribuzione della Potenza per Range di Velocità",
+    "chart_power_desc": "Blu = potenza residua per l'accelerazione. Arancione = potenza consumata da resistenza aerodinamica e rotolamento.",
+    "chart_torque_legend": "Giri al minuto (RPM)",
+    "chart_torque_desc": "Curva di coppia sull'intero range RPM, con indicazione del picco e della fascia di erogazione.",
+
+    "terrain_weather_title": "Fondo & Meteo",
+    "terrain_label": "Fondo Stradale",
+    "terrain_asphalt": "Asfalto",
+    "terrain_wet": "Bagnato",
+    "terrain_snow": "Neve",
+    "terrain_mud": "Fango",
+    "terrain_sand": "Sabbia",
+    "weather_temperature": "Temperatura",
+    "weather_headwind": "Vento Frontale",
+    "weather_rain": "Pioggia"
 }
-  
