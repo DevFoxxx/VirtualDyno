@@ -1,4 +1,4 @@
-# <img src="assets/images/icon.png" alt="icon" width="80" height="80" /> VirtualDyno
+# <img src="assets/images/icon.png" alt="icon" width="50" height="50" /> VirtualDyno
 
 ![React Native](https://img.shields.io/badge/React%20Native-000000?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
@@ -10,88 +10,67 @@
 
 ---
 
-## 📸 Screenshots (development phase — light / dark theme)
+## Screenshots
 
-![screenshot 1](image.png) ![screenshot 2](image-1.png) ![screenshot 3](image-2.png) ![screenshot 4](image-3.png) ![screenshot 5](image-4.png) ![screenshot 6](image-5.png)
+| Light            | Dark             |
+|------------------|------------------|
+| ![](image.png)  | ![](image-1.png) |
+| ![](image-2.png) | ![](image-3.png) |
+| ![](image-4.png) | ![](image-5.png) |
+| ![](image-6.png) | ![](image-7.png) |
 
 ---
 
 # 🇬🇧 English
 
-## Description
+## What is VirtualDyno?
 
-VirtualDyno is an advanced mobile application designed to simulate and analyze vehicle performance using real physical parameters: power, weight, aerodynamic drag, rolling resistance, engine type, aspiration mode, terrain, and weather conditions.
+VirtualDyno is an open-source mobile app that simulates vehicle performance from a set of physical parameters — power, weight, aerodynamics, engine type, aspiration mode, drivetrain type, terrain, and weather. It gives you 0–100 km/h and 0–200 km/h times, theoretical top speed, a torque curve, and a power distribution analysis across speed bands — all without needing access to a physical dynamometer.
 
-The physics model is empirically calibrated against real-world dyno data (zperfs, manufacturer specs) and validated on known vehicles (BMW 320d vs 320i, Golf GTI EA888, Tesla Model 3). The goal is to stay as close as possible to real-world behavior without overcomplicating the model — balancing accuracy with accessibility.
-
-VirtualDyno is open-source and built for car enthusiasts, engineers, performance testers, and developers who want a fast, portable simulation tool without physical test equipment.
+The physics model is empirically calibrated against data from multiple reliable sources across a wide range of vehicles, from everyday hatchbacks to high-performance supercars. The formulas are documented in the source code and designed to stay interpretable without sacrificing accuracy.
 
 ## Features
 
-- **0–100 km/h (0–62 mph)** acceleration simulation with terrain and weather modifiers
-- **0–200 km/h (0–124 mph)** acceleration with monotonic curve interpolation
-- **Top speed** estimation via binary search on force equilibrium
-- **Torque curve** simulation — petrol, diesel, and electric-specific models
-- **Power distribution** chart across speed bands
-- **Engine types**: Petrol, Diesel, Electric — each with dedicated physics defaults and torque curves
-- **Aspiration modes**: Natural, Turbo (with lag model), Supercharger, Biturbo — calibrated multipliers
-- **Traction types**: FWD, RWD, AWD
-- **Terrain modifiers**: Asphalt, Wet, Snow, Mud, Sand
-- **Weather conditions**: Temperature, headwind, rain intensity
-- **Advanced parameters accordion**: efficiency, air density, Cd, Cr, frontal area
-- **Metric / Imperial toggle**: full conversion across all inputs, outputs, and charts
-- **Language toggle**: 🇮🇹 Italian / 🇬🇧 English
-- **Light / Dark theme** support
+- **0–100 km/h (0–62 mph)** time with animated speed-time chart
+- **0–200 km/h (0–124 mph)** time with monotonic curve interpolation — no dip artifacts
+- **Theoretical top speed** via binary search with calibrated drivetrain loss factor
+- **Torque curve** across the full RPM range, with engine-type-specific models
+- **Power distribution chart** — surplus vs. required power across speed bands
+- **Engine types** — Petrol, Diesel, Electric with dedicated physics defaults and torque curves
+- **Aspiration modes** — Natural, Turbo (with lag model), Supercharger, Biturbo
+- **Terrain & weather simulation** — asphalt, wet, snow, mud, sand; temperature, headwind, rain
+- **Traction type** — FWD, RWD, AWD with calibrated grip penalties
+- **Advanced parameters accordion** — efficiency, air density, Cd, Cr, frontal area
+- **Metric / Imperial toggle** — full conversion across all inputs, outputs, and chart axes
+- **English / Italian** language switch
+- **Light / Dark theme**
 
-## Physics Model
+## Physics model
 
-| Quantity | Formula / Method |
-|---|---|
-| 0–100 time | Empirical: `t = v/a` at v = 100 km/h, calibrated scalar |
-| 0–200 time | `t200 = t100 × clamp(1.9516 + 0.2082/(cv/kg), 2.1, 3.8)` |
-| 0–200 graph | Monotonic sqrt interpolation between t100/t200 anchors |
-| Top speed | Binary search on `F_engine - F_drag - F_rolling = 0` |
-| Torque (ICE) | Exponential rise + Gaussian decay, peak RPM by power class |
-| Torque (EV) | 3-phase: flat peak → mild linear drop → field weakening |
-| Diesel penalty | ×1.06 on 0–100, ×1.09 on 0–200 (validated BMW 320d vs 320i) |
-| Turbo lag | Boost threshold 2200 RPM (biturbo: 2800), pre-boost at 28%/22% of peak |
-| Aspiration | Per-mode multipliers on t100/t200 and torque peak |
-| Traction | Penalty coefficient on time per traction type |
-| Terrain | Multiplier on resistance and grip |
-| Weather | Temperature/density, headwind, rain drag corrections |
+| Output | Method |
+|--------|--------|
+| 0–100 time | Empirical: `t = v/a` at v = 100 km/h, net force from `P·η/v − F_aero − F_roll` |
+| 0–200 time | Calibrated scaler: `t200 = t100 × clamp(1.9516 + 0.2082/(cv/kg), 2.1, 3.8)` |
+| 0–200 graph | Monotonic sqrt interpolation anchored on exact t100 / t200 values |
+| Top speed | Binary search on `F_engine − F_drag − F_rolling = 0` |
+| Torque (ICE) | Exponential rise + Gaussian decay, peak RPM scaled by power class |
+| Torque (EV) | 3-phase: flat peak → linear drop → field weakening |
+| Diesel penalty | ×1.06 on 0–100, ×1.09 on 0–200 |
+| Turbo lag | Boost threshold 2200 RPM (biturbo: 2800), pre-boost torque at 28% / 22% of peak |
+| Aspiration | Per-mode multipliers on t100 / t200 and torque peak |
+| Traction | Calibrated time penalty per drivetrain type |
+| Terrain / weather | Post-multiplier: grip factor, temperature/density correction, headwind, rain |
 
-## Tech Stack
+## Technologies
 
-| Package | Purpose |
-|---|---|
-| `expo` + `expo-router` | App shell and navigation |
-| `react-native` | UI framework |
-| `typescript` | Type safety |
-| `react-i18next` | EN / IT localisation |
-| `react-native-gifted-charts` | Line, bar, and area charts |
-| `@react-native-community/slider` | Weather condition sliders |
-
-## Project Structure
-
-```
-VirtualDyno/
-├── app/
-│   └── index.tsx                  # Main screen — all state, physics, layout
-├── components/
-│   ├── EngineTypePicker.tsx        # Engine type + aspiration selector
-│   ├── TractionPicker.tsx          # FWD / RWD / AWD selector
-│   ├── TerrainWeatherPicker.tsx    # Terrain + weather conditions
-│   ├── ZeroTo100Chart.tsx          # 0–100 speed/time chart
-│   ├── ZeroTo200Chart.tsx          # 0–200 speed/time chart
-│   ├── TheoreticalTopSpeed.tsx     # Top speed vs power chart
-│   ├── PowerDistributionChart.tsx  # Power bands bar chart
-│   ├── MaxTorqueChart.tsx          # Torque curve chart
-│   └── AdditionalStats.tsx         # Derived stats card
-├── i18n/
-│   ├── en.json                     # English translations
-│   └── it.json                     # Italian translations
-└── assets/images/                  # Icons and screenshots
-```
+| Library | Purpose |
+|---------|---------|
+| React Native + Expo | Mobile framework |
+| TypeScript | Type safety |
+| react-i18next | Internationalisation (EN / IT) |
+| react-native-gifted-charts | Line charts and bar charts |
+| @react-native-community/slider | Terrain & weather sliders |
+| react-native-reanimated | Animations |
 
 ## Installation
 
@@ -103,15 +82,34 @@ npx expo install @react-native-community/slider
 npx expo start
 ```
 
-Run on Android emulator or physical device via Expo Dev Tools.
-For iOS testing without a paid Apple Developer account, use **Expo Go** (some native modules may have limited support).
+Scan the QR code with Expo Go on Android or iOS, or press `a` for an Android emulator.
 
-## Unit System
+## Project structure
 
-All internal calculations use the metric system (km/h, kg, kW, Nm, m²). When the **IMP** toggle is active, conversions are applied at display time across every input, output, and chart axis:
+```
+app/
+  index.tsx                  # Main screen — all state, physics, layout
+components/
+  AdditionalStats.tsx        # Derived stats (kW, hp, CV/t, distance…)
+  EngineTypePicker.tsx       # Engine type + aspiration selector
+  MaxTorqueChart.tsx         # RPM vs torque line chart
+  PowerDistributionChart.tsx # Grouped bar chart by speed band
+  TerrainWeatherPicker.tsx   # Terrain buttons + weather sliders
+  TheoreticalTopSpeed.tsx    # Power available vs required chart
+  TractionPicker.tsx         # FWD / RWD / AWD icon selector
+  ZeroTo100Chart.tsx         # 0–100 speed-time line chart
+  ZeroTo200Chart.tsx         # 0–200 speed-time line chart
+i18n/
+  en.json                    # English translations
+  it.json                    # Italian translations
+```
+
+## Unit system
+
+All internal calculations use the metric system. When the **IMP** toggle is active, conversions are applied at display time across every input, output, and chart axis:
 
 | Metric | Imperial |
-|---|---|
+|--------|----------|
 | km/h | mph |
 | kg | lbs |
 | kW | hp |
@@ -120,66 +118,75 @@ All internal calculations use the metric system (km/h, kg, kW, Nm, m²). When th
 | kg/m³ | lb/ft³ |
 | °C | °F |
 
-## Available Translations
-
-| Language | Status |
-|---|---|
-| 🇬🇧 English | ✅ Complete |
-| 🇮🇹 Italian | ✅ Complete |
-
-## Roadmap
-
-- [ ] Preset vehicle database (10–15 real cars as starting points)
-- [ ] Share results as image / export
-- [ ] Vehicle comparison mode (side-by-side)
-- [ ] Third language (e.g. Spanish or German)
-- [ ] "About" screen with physics model explanation
-- [ ] Numerical torque integration for more precise acceleration model
-- [ ] Play Store release
-
 ## Contributing
 
-Pull requests and issues are welcome. Areas where help is most appreciated:
+Pull requests are welcome. The areas most open to contribution are:
 
-- Bug reports and edge-case physics validation
-- UI/UX improvements
-- Additional language translations
-- Verified real-world data for physics calibration
+1. **Physics improvements** — torque-curve-based numerical integration for more accurate intermediate times
+2. **UI / UX** — layout polish, chart label alignment (see open issues)
+3. **New vehicle profiles** — preset configurations for common cars
+4. **Bug fixes** — check the [Issues](https://github.com/DevFoxxx/VirtualDyno/issues) tab
+
+Please open an issue before starting significant work so we can coordinate.
 
 ## License
 
-This project is **source-available** for viewing and non-commercial contribution.  
-Commercial use, redistribution, and derivative products require explicit written permission from the author.  
-See [LICENSE](./LICENSE) for full terms.
+The source code is available for review and contributions.  
+Commercial use, redistribution, and derivative works are not permitted  
+without the author's explicit written permission. See [LICENSE](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).
 
 ---
 
 # 🇮🇹 Italiano
 
-## Descrizione
+## Cos'è VirtualDyno?
 
-VirtualDyno è un'applicazione mobile avanzata per simulare e analizzare le prestazioni di un veicolo tramite parametri fisici reali: potenza, peso, resistenza aerodinamica, resistenza al rotolamento, tipo di motore, tipo di aspirazione, terreno e condizioni meteo.
+VirtualDyno è un'app mobile open-source che simula le prestazioni di un veicolo a partire da parametri fisici — potenza, peso, aerodinamica, tipo di motore, modalità di aspirazione, tipo di trazione, fondo stradale e condizioni meteo. Fornisce i tempi 0–100 km/h e 0–200 km/h, la velocità massima teorica, la curva di coppia e un'analisi della distribuzione della potenza per fasce di velocità, senza bisogno di un banco prova fisico.
 
-Il modello fisico è calibrato empiricamente su dati reali (zperfs, schede tecniche dei costruttori) e validato su veicoli noti (BMW 320d vs 320i, Golf GTI EA888, Tesla Model 3). L'obiettivo è restare il più vicino possibile al comportamento reale senza complicare eccessivamente il modello — bilanciando precisione e accessibilità.
-
-VirtualDyno è open-source e pensato per appassionati di auto, ingegneri, tester di prestazioni e sviluppatori che cercano uno strumento di simulazione rapido e portatile, senza bisogno di attrezzature fisiche.
+Il modello fisico è calibrato empiricamente su dati provenienti da diverse fonti affidabili, su un ampio numero di vetture che spaziano dalle citycar alle supercar ad alte prestazioni. Le formule sono documentate nel codice sorgente e progettate per restare leggibili senza sacrificare la precisione.
 
 ## Funzionalità
 
-- Simulazione accelerazione **0–100 km/h** con modificatori terreno e meteo
-- Accelerazione **0–200 km/h** con interpolazione monotona della curva
-- Stima della **velocità massima** tramite ricerca binaria sull'equilibrio delle forze
-- Simulazione della **curva di coppia** — modelli specifici per benzina, diesel ed elettrico
-- Grafico **distribuzione della potenza** per fasce di velocità
-- **Tipo motore**: Benzina, Diesel, Elettrico — con defaults fisici e curve di coppia dedicate
-- **Modalità di aspirazione**: Naturale, Turbo (con modello lag), Compressore, Biturbo — moltiplicatori calibrati
-- **Tipo di trazione**: FWD, RWD, AWD
-- **Modificatori terreno**: Asfalto, Bagnato, Neve, Fango, Sabbia
-- **Condizioni meteo**: Temperatura, vento frontale, intensità pioggia
-- **Accordion parametri avanzati**: efficienza, densità aria, Cd, Cr, area frontale
-- **Toggle Metrico / Imperiale**: conversione completa su tutti gli input, output e assi dei grafici
-- **Toggle lingua**: 🇮🇹 Italiano / 🇬🇧 Inglese
-- Supporto **tema chiaro / scuro**
+- **0–100 km/h** con grafico velocità-tempo animato
+- **0–200 km/h** con interpolazione monotona della curva — nessun artefatto di discesa
+- **Velocità massima teorica** tramite ricerca binaria con fattore di perdita calibrato
+- **Curva di coppia** sull'intero range RPM, con modelli specifici per tipo di motore
+- **Grafico distribuzione potenza** — potenza residua vs. richiesta per fasce di velocità
+- **Tipo di motore** — Benzina, Diesel, Elettrico con defaults fisici e curve di coppia dedicate
+- **Modalità di aspirazione** — Naturale, Turbo (con modello lag), Compressore, Biturbo
+- **Simulazione fondo & meteo** — asfalto, bagnato, neve, fango, sabbia; temperatura, vento, pioggia
+- **Tipo di trazione** — FWD, RWD, AWD con penalità di aderenza calibrate
+- **Accordion parametri avanzati** — efficienza, densità aria, Cd, Cr, area frontale
+- **Toggle Metrico / Imperiale** — conversione completa su input, output e assi dei grafici
+- **Lingua inglese / italiana**
+- **Tema chiaro / scuro**
+
+## Modello fisico
+
+| Output | Metodo |
+|--------|--------|
+| 0–100 km/h | Empirica: `t = v/a` a v = 100 km/h, forza netta da `P·η/v − F_aero − F_roll` |
+| 0–200 km/h | Scaler calibrato: `t200 = t100 × clamp(1.9516 + 0.2082/(cv/kg), 2.1, 3.8)` |
+| Grafico 0–200 | Interpolazione sqrt monotona ancorata su t100 / t200 esatti |
+| Velocità max | Ricerca binaria su `F_motore − F_drag − F_rolling = 0` |
+| Coppia (ICE) | Salita esponenziale + decadimento gaussiano, picco scalato per classe di potenza |
+| Coppia (EV) | 3 fasi: picco piatto → calo lineare → indebolimento di campo |
+| Penalità diesel | ×1.06 su 0–100, ×1.09 su 0–200 |
+| Turbo lag | Soglia boost 2200 RPM (biturbo: 2800), pre-boost al 28% / 22% del picco |
+| Aspirazione | Moltiplicatori per modalità su t100 / t200 e picco di coppia |
+| Trazione | Penalità sul tempo calibrata per tipo di trazione |
+| Fondo / meteo | Post-moltiplicatore: grip, correzione temperatura/densità, vento, pioggia |
+
+## Tecnologie
+
+| Libreria | Scopo |
+|---------|-------|
+| React Native + Expo | Framework mobile |
+| TypeScript | Tipizzazione |
+| react-i18next | Internazionalizzazione (EN / IT) |
+| react-native-gifted-charts | Grafici a linee e a barre |
+| @react-native-community/slider | Slider per fondo e meteo |
+| react-native-reanimated | Animazioni |
 
 ## Installazione
 
@@ -191,15 +198,25 @@ npx expo install @react-native-community/slider
 npx expo start
 ```
 
-Avvia su emulatore Android o dispositivo fisico tramite Expo Dev Tools.  
-Per test su iOS senza Apple Developer Account, usa **Expo Go**.
+Scansiona il QR code con Expo Go su Android o iOS, oppure premi `a` per un emulatore Android.
 
 ## Sistema di unità
 
-Tutti i calcoli interni usano il sistema metrico (km/h, kg, kW, Nm, m²). Quando il toggle **IMP** è attivo, le conversioni vengono applicate al momento della visualizzazione su ogni input, output e asse dei grafici.
+Tutti i calcoli interni usano il sistema metrico. Quando il toggle **IMP** è attivo, le conversioni vengono applicate al momento della visualizzazione su ogni input, output e asse dei grafici.
+
+## Contributi
+
+Le pull request sono benvenute. Le aree più aperte ai contributi sono:
+
+1. **Miglioramenti fisici** — integrazione numerica basata sulla curva di coppia per tempi più precisi
+2. **UI / UX** — rifinitura del layout, allineamento etichette grafici (vedi issues aperti)
+3. **Profili veicolo preimpostati** — configurazioni per auto comuni
+4. **Bug fix** — controlla la sezione [Issues](https://github.com/DevFoxxx/VirtualDyno/issues)
+
+Apri un issue prima di iniziare un lavoro significativo, così possiamo coordinarci.
 
 ## Licenza
 
-Questo progetto è **source-available** per consultazione e contribuzione non commerciale.  
-L'uso commerciale, la ridistribuzione e i prodotti derivati richiedono autorizzazione scritta esplicita dell'autore.  
-Consulta [LICENSE](./LICENSE) per i termini completi.
+Il codice sorgente è disponibile per consultazione e contribuzione.  
+Uso commerciale, ridistribuzione e opere derivate non sono permessi  
+senza autorizzazione scritta esplicita dell'autore. Vedi [LICENSE](https://github.com/DevFoxxx/VirtualDyno/blob/main/LICENSE).

@@ -4,6 +4,8 @@ import { BarChart } from 'react-native-gifted-charts';
 
 export interface PowerBand {
   label: string;
+  loKmh: number;
+  hiKmh: number;
   available: number;
   required: number;
   surplus: number;
@@ -29,16 +31,18 @@ const PowerDistributionChart: React.FC<PowerDistributionChartProps> = ({
 }) => {
   if (bands.length === 0) return null;
 
-  const KW_TO_HP = 1.341;
-  const powerUnit = isImperial ? ' hp' : ' kW';
-  const convertedBands = isImperial
-    ? bands.map(b => ({
-        ...b,
-        available: +(b.available * KW_TO_HP).toFixed(1),
-        required:  +(b.required  * KW_TO_HP).toFixed(1),
-        surplus:   +(b.surplus   * KW_TO_HP).toFixed(1),
-      }))
-    : bands;
+  const KW_TO_HP   = 1.341;
+  const KMH_TO_MPH = 0.621371;
+  const powerUnit  = isImperial ? ' hp' : ' kW';
+  const convertedBands = bands.map(b => ({
+    ...b,
+    label: isImperial
+      ? `${Math.round(b.loKmh * KMH_TO_MPH)}-${Math.round(b.hiKmh * KMH_TO_MPH)}`
+      : b.label,
+    available: isImperial ? +(b.available * KW_TO_HP).toFixed(1) : b.available,
+    required:  isImperial ? +(b.required  * KW_TO_HP).toFixed(1) : b.required,
+    surplus:   isImperial ? +(b.surplus   * KW_TO_HP).toFixed(1) : b.surplus,
+  }));
 
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = screenWidth - 80;
@@ -119,7 +123,7 @@ const PowerDistributionChart: React.FC<PowerDistributionChartProps> = ({
                 {band.label}
               </Text>
               <Text style={[styles.xLabelUnit, { color: currentTheme.text }]}>
-                km/h
+                {isImperial ? 'mph' : 'km/h'}
               </Text>
             </View>
           ))}

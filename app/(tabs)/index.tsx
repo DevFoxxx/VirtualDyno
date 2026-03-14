@@ -148,6 +148,8 @@ export default function HomeScreen() {
   }, [engineConfig.engineType]);
 
   const ref = useRef<ScrollView>(null);
+  const firstChartRef = useRef<View>(null);
+  const firstChartY = useRef<number>(0);
 
   const isElectric = engineConfig.engineType === 'electric';
 
@@ -353,12 +355,45 @@ export default function HomeScreen() {
   const buildGraphData = useCallback(
     (maxSpeed: number, step: number): { speed: number; time: number }[] => {
       const data: { speed: number; time: number }[] = [{ speed: 0, time: 0 }];
-      for (let speed = step; speed <= maxSpeed; speed += step) {
-        const time = parseFloat(calculateAccelerationTime(speed));
-        if (!isNaN(time) && time > 0) {
-          data.push({ speed, time });
+
+      if (maxSpeed <= 100) {
+        // 0-100: direct formula, always monotone in this range
+        for (let speed = step; speed <= maxSpeed; speed += step) {
+          const time = parseFloat(calculateAccelerationTime(speed));
+          if (!isNaN(time) && time > 0) data.push({ speed, time });
         }
+        return data;
       }
+
+      // 0-200: build in two segments anchored on exact t100 and t200
+      // to guarantee monotonicity and match the displayed results exactly.
+      const t100 = parseFloat(calculateAccelerationTime(100));
+      const t200 = parseFloat(calculateAccelerationTime(200));
+      if (isNaN(t100) || isNaN(t200) || t100 <= 0 || t200 <= t100) return data;
+
+      // Segment 1: 0 → 100  (direct formula, capped to t100 anchor)
+      for (let speed = step; speed < 100; speed += step) {
+        const raw = parseFloat(calculateAccelerationTime(speed));
+        const tCapped = Math.min(raw, t100 * (speed / 100));
+        if (!isNaN(tCapped) && tCapped > 0) data.push({ speed, time: tCapped });
+      }
+      data.push({ speed: 100, time: t100 });
+
+      // Segment 2: 100 → 200  (sqrt interpolation — physically realistic, strictly monotone)
+      // t(v) = t100 + (t200 - t100) * sqrt((v - 100) / 100)
+      // sqrt gives faster rise at start (high drag / limited surplus) and flattening near 200
+      for (let speed = 100 + step; speed <= 200; speed += step) {
+        const frac = (speed - 100) / 100; // 0..1
+        const time = t100 + (t200 - t100) * Math.sqrt(frac);
+        data.push({ speed, time: parseFloat(time.toFixed(3)) });
+      }
+      // Ensure last point is exactly t200
+      if (data[data.length - 1].speed < 200) {
+        data.push({ speed: 200, time: t200 });
+      } else {
+        data[data.length - 1] = { speed: 200, time: t200 };
+      }
+
       return data;
     },
     [calculateAccelerationTime]
@@ -433,6 +468,7 @@ export default function HomeScreen() {
     const powerEff = powerCV * 735.5 * eta;
     const windMs   = weatherConditions.windSpeed / 3.6;
 
+    // Bands always in km/h internally — label conversion happens in the chart via isImperial
     const bands: [number, number][] = [[0, 50], [50, 100], [100, 150], [150, 200]];
     return bands.map(([lo, hi]) => {
       const vMid  = ((lo + hi) / 2) / 3.6;
@@ -441,7 +477,9 @@ export default function HomeScreen() {
       const pRoll = crValue * mass * 9.81 * vMid;
       const pReq  = pAero + pRoll;
       return {
-        label:     `${lo}-${hi}`,
+        label:     `${lo}-${hi}`,   // raw km/h — chart converts to mph if isImperial
+        loKmh:     lo,
+        hiKmh:     hi,
         available: parseFloat((powerEff / 1000).toFixed(1)),
         required:  parseFloat((pReq     / 1000).toFixed(1)),
         surplus:   parseFloat(((powerEff - pReq) / 1000).toFixed(1)),
@@ -567,7 +605,9 @@ export default function HomeScreen() {
       });
       setIsResultVisible(true);
 
-      setTimeout(() => ref.current?.scrollToEnd(), 100);
+      setTimeout(() => {
+        ref.current?.scrollTo({ y: firstChartY.current - 20, animated: true });
+      }, 100);
     }, 50);
   };
 
@@ -623,29 +663,65 @@ export default function HomeScreen() {
     <ScrollView ref={ref} contentContainerStyle={dynamicStyles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
-        <Text style={styles.title}>{t('title')}</Text>
+        <View style={styles.headerInner}>
+          <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
+          <View>
+            <Text style={styles.title}>{t('title')}</Text>
+            <Text style={styles.subtitle}>Performance Simulator</Text>
+          </View>
+        </View>
+        <View style={styles.headerAccent} />
       </View>
 
-      {/* Controls row */}
-      <View style={styles.controlsContainer}>
-        <View style={styles.languageContainer}>
-          <Text style={dynamicStyles.languageText}>IT</Text>
-          <Switch value={isEnglish} onValueChange={handleLanguageToggle} />
-          <Text style={dynamicStyles.languageText}>EN</Text>
+      {/* Controls row — segmented pill */}
+      <View style={styles.pillRow}>
+        {/* Language segment */}
+        <View style={[styles.pillGroup, { backgroundColor: currentTheme.background === '#fff' ? '#f0f4ff' : '#1a2235' }]}>
+          <TouchableOpacity
+            style={[styles.pillOption, !isEnglish && styles.pillOptionActive]}
+            onPress={() => { if (isEnglish) handleLanguageToggle(); }}
+          >
+            <Text style={[styles.pillText, !isEnglish && styles.pillTextActive]}>IT</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.pillOption, isEnglish && styles.pillOptionActive]}
+            onPress={() => { if (!isEnglish) handleLanguageToggle(); }}
+          >
+            <Text style={[styles.pillText, isEnglish && styles.pillTextActive]}>EN</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.languageContainer}>
-          <Text style={dynamicStyles.languageText}>MET</Text>
-          <Switch value={isImperial} onValueChange={() => setIsImperial(v => !v)} />
-          <Text style={dynamicStyles.languageText}>IMP</Text>
+
+        {/* Unit segment */}
+        <View style={[styles.pillGroup, { backgroundColor: currentTheme.background === '#fff' ? '#f0f4ff' : '#1a2235' }]}>
+          <TouchableOpacity
+            style={[styles.pillOption, !isImperial && styles.pillOptionActive]}
+            onPress={() => setIsImperial(false)}
+          >
+            <Text style={[styles.pillText, !isImperial && styles.pillTextActive]}>MET</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.pillOption, isImperial && styles.pillOptionActive]}
+            onPress={() => setIsImperial(true)}
+          >
+            <Text style={[styles.pillText, isImperial && styles.pillTextActive]}>IMP</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
-          <Feather
-            name={colorScheme === 'dark' ? 'moon' : 'sun'}
-            size={32}
-            color={dynamicStyles.expoIcon.color}
-          />
-        </TouchableOpacity>
+
+        {/* Theme segment */}
+        <View style={[styles.pillGroup, { backgroundColor: currentTheme.background === '#fff' ? '#f0f4ff' : '#1a2235' }]}>
+          <TouchableOpacity
+            style={[styles.pillOption, colorScheme !== 'dark' && styles.pillOptionActive]}
+            onPress={() => { if (colorScheme === 'dark') toggleTheme(); }}
+          >
+            <Feather name="sun" size={14} color={colorScheme !== 'dark' ? '#fff' : '#888'} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.pillOption, colorScheme === 'dark' && styles.pillOptionActive]}
+            onPress={() => { if (colorScheme !== 'dark') toggleTheme(); }}
+          >
+            <Feather name="moon" size={14} color={colorScheme === 'dark' ? '#fff' : '#888'} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.inputsWrapper}>
@@ -686,7 +762,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <Text style={dynamicStyles.label}> {t('trazione')}</Text>
           </View>
-          <TractionPicker trazione={trazione} setTrazione={setTrazione} currentTheme={currentTheme} />
+          <TractionPicker trazione={trazione} setTrazione={setTrazione} currentTheme={{ text: currentTheme.text, background: currentTheme.background }} />
           {selectedHelp === 'trazione' && (
             <Text style={styles.helpText}>{helpMessages.trazione}</Text>
           )}
@@ -703,27 +779,38 @@ export default function HomeScreen() {
         {/* Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.button, buttonStyle]}
+            style={[styles.calcButton, !requiredFieldsFilled && styles.calcButtonDisabled]}
             onPress={handleCalculate}
             disabled={!requiredFieldsFilled}
+            activeOpacity={0.85}
           >
-            <Text style={{ color: !requiredFieldsFilled ? '#999' : '#000' }}>
+            <Feather name="zap" size={16} color={!requiredFieldsFilled ? '#aaa' : '#fff'} style={{ marginRight: 8 }} />
+            <Text style={[styles.calcButtonText, !requiredFieldsFilled && { color: '#aaa' }]}>
               {t('calcola')}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={handleReset}>
-            <Text style={styles.resetButtonText}>{t('reset')}</Text>
+          <TouchableOpacity style={styles.resetBtn} onPress={handleReset} activeOpacity={0.85}>
+            <Feather name="refresh-ccw" size={16} color="#004aad" style={{ marginRight: 6 }} />
+            <Text style={styles.resetBtnText}>{t('reset')}</Text>
           </TouchableOpacity>
         </View>
 
         {showError && <Text style={styles.errorText}>{t('error_fields')}</Text>}
 
         {isResultVisible && (
-          <Text style={styles.risultati}>{t('risultati')}</Text>
+          <View style={styles.risultatiHeader}>
+            <View style={styles.risultatiLine} />
+            <Text style={styles.risultati}>{t('risultati')}</Text>
+            <View style={styles.risultatiLine} />
+          </View>
         )}
 
         {/* 0-100 chart */}
         {graphData100.length > 0 && (
+          <View
+            ref={firstChartRef}
+            onLayout={(e) => { firstChartY.current = e.nativeEvent.layout.y; }}
+          >
           <ZeroTo100Chart
             graphData={graphData100}
             currentTheme={currentTheme}
@@ -732,6 +819,7 @@ export default function HomeScreen() {
             legendTitle={t('chart_0_100_legend')}
             isImperial={isImperial}
           />
+          </View>
         )}
 
         {/* 0-200 chart */}
@@ -806,36 +894,76 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerContainer: { flexDirection: 'row', alignItems: 'center', padding: 20 },
-  logo:  { width: 50, height: 50, marginRight: 10 },
-  title: { fontSize: 24, fontWeight: '500', color: '#004aad' },
-  risultati: {
-    fontSize: 24, color: '#004aad', marginTop: 20, marginBottom: 10, textAlign: 'center',
+  // ── Header ──────────────────────────────────────────────────────────────
+  headerContainer: {
+    paddingHorizontal: 20, paddingTop: 24, paddingBottom: 12, overflow: 'hidden',
   },
-  controlsContainer: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, flexWrap: 'wrap', gap: 6,
+  headerInner: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  logo: { width: 52, height: 52, borderRadius: 12 },
+  title: { fontSize: 26, fontWeight: '800', color: '#004aad', letterSpacing: -0.5 },
+  subtitle: { fontSize: 11, color: '#6b8ccc', letterSpacing: 2, textTransform: 'uppercase', marginTop: 1 },
+  headerAccent: {
+    position: 'absolute', right: -30, top: 0, width: 140, height: 140,
+    borderRadius: 70, backgroundColor: 'rgba(0,74,173,0.06)',
   },
-  languageContainer: { flexDirection: 'row', alignItems: 'center' },
-  themeToggle: { color: '#004aad', borderRadius: 100, padding: 5, borderColor: 'white' },
-  inputsWrapper: { width: '90%', marginTop: 10 },
-  inputGroup:   { marginBottom: 15 },
+
+  // ── Pill row ─────────────────────────────────────────────────────────────
+  pillRow: {
+    flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 12, justifyContent: 'center',
+  },
+  pillGroup: {
+    flexDirection: 'row', borderRadius: 50, padding: 3,
+    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  pillOption: {
+    paddingHorizontal: 14, paddingVertical: 7, borderRadius: 50,
+    alignItems: 'center', justifyContent: 'center', minWidth: 42,
+  },
+  pillOptionActive: {
+    backgroundColor: '#004aad',
+    shadowColor: '#004aad', shadowOpacity: 0.4, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  pillText: { fontSize: 12, fontWeight: '600', color: '#888' },
+  pillTextActive: { color: '#fff' },
+
+  // ── Inputs ───────────────────────────────────────────────────────────────
+  inputsWrapper: { width: '90%', marginTop: 6 },
+  inputGroup:    { marginBottom: 15 },
   labelContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
   helpIcon: { marginLeft: 5, paddingBottom: 10 },
-  helpText: { fontSize: 12, color: '#666', marginTop: 5 },
-  buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, marginVertical: 20 },
-  button: { flex: 1, padding: 15, borderRadius: 8, alignItems: 'center' },
-  buttonWhite: {
-    backgroundColor: 'white', padding: 10, height: 45, borderWidth: 1,
-    borderColor: '#ccc', borderRadius: 50, flex: 0.45, alignItems: 'center', justifyContent: 'center',
+  helpText: { fontSize: 12, color: '#888', marginTop: 5, paddingLeft: 4 },
+
+  // ── Buttons ──────────────────────────────────────────────────────────────
+  buttonContainer: { flexDirection: 'row', gap: 10, marginVertical: 20 },
+  calcButton: {
+    flex: 1, height: 50, borderRadius: 14, backgroundColor: '#004aad',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#004aad', shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
-  buttonDisabled: {
-    backgroundColor: '#e0e0e0', padding: 10, height: 45, borderWidth: 1,
-    borderColor: '#ccc', borderRadius: 50, flex: 0.45, alignItems: 'center', justifyContent: 'center',
+  calcButtonDisabled: {
+    backgroundColor: '#e4e8f0', shadowOpacity: 0, elevation: 0,
   },
-  resetButton: {
-    backgroundColor: '#004aad', padding: 10, height: 45,
-    borderRadius: 50, flex: 0.45, alignItems: 'center', justifyContent: 'center',
+  calcButtonText: { color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: 0.3 },
+  resetBtn: {
+    flex: 0.5, height: 50, borderRadius: 14,
+    borderWidth: 1.5, borderColor: '#004aad',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
   },
-  resetButtonText: { color: 'white' },
-  errorText: { color: 'red', textAlign: 'center', marginTop: -10, marginBottom: 10 },
+  resetBtnText: { color: '#004aad', fontWeight: '600', fontSize: 14 },
+
+  // ── Results header ────────────────────────────────────────────────────────
+  risultatiHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 20, marginBottom: 14,
+  },
+  risultatiLine: { flex: 1, height: 1, backgroundColor: '#004aad', opacity: 0.25 },
+  risultati: {
+    fontSize: 16, fontWeight: '700', color: '#004aad', letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+
+  // ── Error ─────────────────────────────────────────────────────────────────
+  errorText: { color: '#e03030', textAlign: 'center', marginTop: -10, marginBottom: 10, fontSize: 13 },
 });
