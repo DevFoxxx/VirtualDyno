@@ -11,6 +11,7 @@ interface MaxTorqueChartProps {
   title: string;
   legendTitle: string;
   description: string;
+  isImperial?: boolean;
 }
 
 const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
@@ -19,6 +20,7 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
   legendTitle,
   description,
   title,
+  isImperial = false,
 }) => {
   const getMaxCoppiaIndex = (data: { rpm: number; coppia: number }[]) => {
     return data.reduce(
@@ -29,7 +31,12 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
   };
 
   let peakCoppiaIndex = getMaxCoppiaIndex(coppiaGraphData);
-  console.log(coppiaGraphData);
+  const NM_TO_LBFT = 0.7376;
+  const torqueUnit = isImperial ? ' lb·ft' : ' Nm';
+  const convertedData = coppiaGraphData.map(item => ({
+    ...item,
+    coppia: isImperial ? item.coppia * NM_TO_LBFT : item.coppia,
+  }));
 
   return (
     <View style={[styles.container, { borderBottomColor: currentTheme.text }]}>
@@ -46,13 +53,13 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
           }}
         >
           <LineChart
-            data={coppiaGraphData.map((item) => ({
+            data={convertedData.map((item) => ({
               value: item.coppia,
               label: String(item.rpm),
               dataPointText: String(Math.floor(item.coppia)),
             }))}
             //Max Torque///////////////////////////////////
-            data2={coppiaGraphData.map((item) => ({
+            data2={convertedData.map((item) => ({
               value: item.coppia,
               label: String(item.rpm),
               dataPointText: String(Math.floor(item.coppia)),
@@ -62,7 +69,7 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
             dataPointsColor2='#09ff00'
             zIndex2={100}
             //Declining Torque//////////////////////////////
-            data3={coppiaGraphData.map((item) => ({
+            data3={convertedData.map((item) => ({
               value: item.coppia,
               label: String(item.rpm),
               dataPointText: String(Math.floor(item.coppia)),
@@ -102,7 +109,7 @@ const MaxTorqueChart: React.FC<MaxTorqueChartProps> = ({
             focusedDataPointHeight={30}
             textFontSize1={15}
             disableScroll={true}
-            yAxisLabelSuffix=' Nm'
+            yAxisLabelSuffix={torqueUnit}
             yAxisLabelWidth={55}
             curved
             curvature={0.05}

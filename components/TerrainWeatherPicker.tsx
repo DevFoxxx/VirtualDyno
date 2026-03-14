@@ -1,133 +1,146 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { useTranslation } from 'react-i18next';
 
 export type TerrainType = 'asphalt' | 'wet' | 'snow' | 'mud' | 'sand';
 
 export interface WeatherConditions {
-  terrain: TerrainType;
-  temperature: number;   // °C, affects air density
-  windSpeed: number;     // km/h headwind (positive = headwind)
-  rain: boolean;
+  terrain:     TerrainType;
+  temperature: number;   // stored in °C internally
+  windSpeed:   number;   // stored in km/h internally
+  rain:        boolean;
 }
 
 interface TerrainWeatherPickerProps {
-  conditions: WeatherConditions;
-  onChange: (conditions: WeatherConditions) => void;
+  conditions:   WeatherConditions;
+  onChange:     (conditions: WeatherConditions) => void;
   currentTheme: { background: string; text: string };
+  isImperial:   boolean;
 }
 
-const TERRAINS: { key: TerrainType; label: string; initial: string }[] = [
-  { key: 'asphalt', label: 'Asphalt', initial: 'A'  },
-  { key: 'wet',     label: 'Wet',     initial: 'W'  },
-  { key: 'snow',    label: 'Snow',    initial: 'S'  },
-  { key: 'mud',     label: 'Mud',     initial: 'M'  },
-  { key: 'sand',    label: 'Sand',    initial: 'Sa' },
+const TERRAINS: { key: TerrainType; initial: string }[] = [
+  { key: 'asphalt', initial: 'A'  },
+  { key: 'wet',     initial: 'W'  },
+  { key: 'snow',    initial: 'S'  },
+  { key: 'mud',     initial: 'M'  },
+  { key: 'sand',    initial: 'Sa' },
 ];
 
 const TerrainWeatherPicker: React.FC<TerrainWeatherPickerProps> = ({
   conditions,
   onChange,
   currentTheme,
+  isImperial,
 }) => {
+  const { t } = useTranslation();
+
   const update = (partial: Partial<WeatherConditions>) =>
     onChange({ ...conditions, ...partial });
+
+  // Display conversions — internal values always metric
+  const displayTemp = isImperial
+    ? Math.round(conditions.temperature * 9 / 5 + 32)
+    : conditions.temperature;
+  const displayWind = isImperial
+    ? Math.round(conditions.windSpeed * 0.621371)
+    : conditions.windSpeed;
+  const tempUnit = isImperial ? '°F' : '°C';
+  const windUnit = isImperial ? 'mph' : 'km/h';
+  const tempMin  = isImperial ? -4  : -20;
+  const tempMax  = isImperial ? 122 :  50;
+  const windMax  = isImperial ?  75 : 120;
+
+  const handleTempChange = (v: number) => {
+    const internal = isImperial ? Math.round((v - 32) * 5 / 9) : v;
+    update({ temperature: internal });
+  };
+
+  const handleWindChange = (v: number) => {
+    const internal = isImperial ? Math.round(v / 0.621371) : v;
+    update({ windSpeed: internal });
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
-        Terrain & Weather
+        {t('terrain_weather_title')}
       </Text>
 
       {/* Terrain picker */}
-      <Text style={[styles.label, { color: currentTheme.text }]}>Terrain</Text>
+      <Text style={[styles.label, { color: currentTheme.text }]}>
+        {t('terrain_label')}
+      </Text>
       <View style={styles.terrainRow}>
-        {TERRAINS.map((t) => {
-          const isActive = conditions.terrain === t.key;
+        {TERRAINS.map((ter) => {
+          const isActive = conditions.terrain === ter.key;
           return (
             <TouchableOpacity
-              key={t.key}
-              style={[
-                styles.terrainButton,
-                isActive && styles.terrainButtonActive,
-              ]}
-              onPress={() => update({ terrain: t.key })}
+              key={ter.key}
+              style={[styles.terrainButton, isActive && styles.terrainButtonActive]}
+              onPress={() => update({ terrain: ter.key })}
             >
-              <Text
-                style={[
-                  styles.terrainInitial,
-                  { color: isActive ? '#fff' : '#004aad' },
-                ]}
-              >
-                {t.initial}
+              <Text style={[styles.terrainInitial, { color: isActive ? '#fff' : '#004aad' }]}>
+                {ter.initial}
               </Text>
-              <Text
-                style={[
-                  styles.terrainLabel,
-                  { color: isActive ? '#fff' : currentTheme.text },
-                ]}
-              >
-                {t.label}
+              <Text style={[styles.terrainLabel, { color: isActive ? '#fff' : currentTheme.text }]}>
+                {t(`terrain_${ter.key}`)}
               </Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
-      {/* Temperature slider */}
+      {/* Temperature */}
       <Text style={[styles.label, { color: currentTheme.text }]}>
-        Temperature: {conditions.temperature}°C
+        {t('weather_temperature')}: {displayTemp}{tempUnit}
       </Text>
       <Slider
         style={styles.slider}
-        minimumValue={-20}
-        maximumValue={50}
+        minimumValue={tempMin}
+        maximumValue={tempMax}
         step={1}
-        value={conditions.temperature}
-        onValueChange={(v) => update({ temperature: v })}
+        value={displayTemp}
+        onValueChange={handleTempChange}
         minimumTrackTintColor='#004aad'
         maximumTrackTintColor='#ccc'
         thumbTintColor='#004aad'
       />
       <View style={styles.sliderLabels}>
-        <Text style={[styles.sliderEnd, { color: currentTheme.text }]}>-20°C</Text>
-        <Text style={[styles.sliderEnd, { color: currentTheme.text }]}>+50°C</Text>
+        <Text style={[styles.sliderEnd, { color: currentTheme.text }]}>{tempMin}{tempUnit}</Text>
+        <Text style={[styles.sliderEnd, { color: currentTheme.text }]}>{tempMax}{tempUnit}</Text>
       </View>
 
-      {/* Wind slider */}
+      {/* Headwind */}
       <Text style={[styles.label, { color: currentTheme.text }]}>
-        Headwind: {conditions.windSpeed} km/h
+        {t('weather_headwind')}: {displayWind} {windUnit}
       </Text>
       <Slider
         style={styles.slider}
         minimumValue={0}
-        maximumValue={120}
-        step={5}
-        value={conditions.windSpeed}
-        onValueChange={(v) => update({ windSpeed: v })}
+        maximumValue={windMax}
+        step={isImperial ? 3 : 5}
+        value={displayWind}
+        onValueChange={handleWindChange}
         minimumTrackTintColor='#004aad'
         maximumTrackTintColor='#ccc'
         thumbTintColor='#004aad'
       />
       <View style={styles.sliderLabels}>
         <Text style={[styles.sliderEnd, { color: currentTheme.text }]}>0</Text>
-        <Text style={[styles.sliderEnd, { color: currentTheme.text }]}>120 km/h</Text>
+        <Text style={[styles.sliderEnd, { color: currentTheme.text }]}>{windMax} {windUnit}</Text>
       </View>
 
       {/* Rain toggle */}
       <View style={styles.rainRow}>
-        <Text style={[styles.label, { color: currentTheme.text }]}>Rain</Text>
+        <Text style={[styles.label, { color: currentTheme.text }]}>{t('weather_rain')}</Text>
         <TouchableOpacity
-          style={[
-            styles.toggleButton,
-            { backgroundColor: conditions.rain ? '#004aad' : '#ccc' },
-          ]}
+          style={[styles.toggleButton, { backgroundColor: conditions.rain ? '#004aad' : '#ccc' }]}
           onPress={() => update({ rain: !conditions.rain })}
         >
           <Text style={styles.toggleText}>{conditions.rain ? 'ON' : 'OFF'}</Text>

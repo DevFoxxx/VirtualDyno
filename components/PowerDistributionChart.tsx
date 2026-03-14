@@ -17,6 +17,7 @@ interface PowerDistributionChartProps {
   };
   title: string;
   description: string;
+  isImperial?: boolean;
 }
 
 const PowerDistributionChart: React.FC<PowerDistributionChartProps> = ({
@@ -24,8 +25,20 @@ const PowerDistributionChart: React.FC<PowerDistributionChartProps> = ({
   currentTheme,
   title,
   description,
+  isImperial = false,
 }) => {
   if (bands.length === 0) return null;
+
+  const KW_TO_HP = 1.341;
+  const powerUnit = isImperial ? ' hp' : ' kW';
+  const convertedBands = isImperial
+    ? bands.map(b => ({
+        ...b,
+        available: +(b.available * KW_TO_HP).toFixed(1),
+        required:  +(b.required  * KW_TO_HP).toFixed(1),
+        surplus:   +(b.surplus   * KW_TO_HP).toFixed(1),
+      }))
+    : bands;
 
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = screenWidth - 80;
@@ -38,7 +51,7 @@ const PowerDistributionChart: React.FC<PowerDistributionChartProps> = ({
   const Y_AXIS_WIDTH = 58; // matches yAxisLabelWidth below
 
   // Bar data WITHOUT label text — labels drawn manually for readability
-  const barData = bands.flatMap((band, i) => [
+  const barData = convertedBands.flatMap((band, i) => [
     {
       value: Math.max(band.surplus, 0),
       frontColor: '#004aad',
@@ -54,7 +67,7 @@ const PowerDistributionChart: React.FC<PowerDistributionChartProps> = ({
   ]);
 
   const maxVal = Math.ceil(
-    Math.max(...bands.map((b) => Math.max(b.available, b.required))) + 10
+    Math.max(...convertedBands.map((b) => Math.max(b.available, b.required))) + 10
   );
 
   // Width each group occupies on screen
@@ -76,7 +89,7 @@ const PowerDistributionChart: React.FC<PowerDistributionChartProps> = ({
           yAxisColor={'#004aad'}
           yAxisTextStyle={{ color: currentTheme.text, fontSize: 10 }}
           rulesColor={'#5a5d5e'}
-          yAxisLabelSuffix=' kW'
+          yAxisLabelSuffix={powerUnit}
           yAxisLabelWidth={Y_AXIS_WIDTH}
           isAnimated
           animationDuration={600}
@@ -94,7 +107,7 @@ const PowerDistributionChart: React.FC<PowerDistributionChartProps> = ({
             marginBottom: 10,
           }}
         >
-          {bands.map((band, i) => (
+          {convertedBands.map((band, i) => (
             <View
               key={band.label}
               style={{

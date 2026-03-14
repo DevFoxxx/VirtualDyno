@@ -55,7 +55,7 @@ const TERRAIN_MODIFIERS: Record<TerrainType, { crMultiplier: number; gripFactor:
 // Inline accordion for advanced parameters
 // ---------------------------------------------------------------------------
 function AdvancedParamsAccordion({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
   const { t } = useTranslation();
   return (
     <View style={{ marginBottom: 15 }}>
@@ -83,19 +83,9 @@ const advStyles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  headerText: {
-    color: '#004aad',
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  chevron: {
-    color: '#004aad',
-    fontSize: 13,
-  },
-  body: {
-    marginTop: 8,
-    paddingLeft: 4,
-  },
+  headerText: { color: '#004aad', fontWeight: '600', fontSize: 15 },
+  chevron:    { color: '#004aad', fontSize: 13 },
+  body:       { marginTop: 8, paddingLeft: 4 },
 });
 
 export default function HomeScreen() {
@@ -140,6 +130,7 @@ export default function HomeScreen() {
   }>({ labels: [], datasets: [] });
   const [isResultVisible, setIsResultVisible] = useState(false);
   const [isEnglish, setIsEnglish] = useState(true); // EN default
+  const [isImperial, setIsImperial] = useState(false); // metric default
 
   // Force EN language on first mount
   useEffect(() => {
@@ -163,7 +154,7 @@ export default function HomeScreen() {
   const requiredFieldsFilled =
     cv && kg && areaFrontale && trazione &&
     efficienza && densitaAria && cd && cr &&
-    (isElectric || (minRPM && maxRPM));  // RPM fields not required for electric
+    (isElectric || (minRPM && maxRPM));
 
   const { colorScheme, toggleTheme } = useColorScheme();
   const currentTheme = colorScheme === 'dark' ? Colors.dark : Colors.light;
@@ -216,6 +207,32 @@ export default function HomeScreen() {
     i18n.changeLanguage(newLang);
     setIsEnglish(!isEnglish);
   };
+
+
+  // ---------------------------------------------------------------------------
+  // Unit conversion helpers
+  // All internal calculations stay metric. Conversions are display/input only.
+  // ---------------------------------------------------------------------------
+  const toDisplayWeight  = (kg: number)   => isImperial ? +(kg * 2.20462).toFixed(1)  : kg;
+  const fromDisplayWeight= (val: number)  => isImperial ? +(val / 2.20462).toFixed(1) : val;
+  const toDisplayArea    = (m2: number)   => isImperial ? +(m2 * 10.7639).toFixed(2)  : m2;
+  const fromDisplayArea  = (val: number)  => isImperial ? +(val / 10.7639).toFixed(2) : val;
+  const toDisplayDensity = (kgm3: number) => isImperial ? +(kgm3 * 0.0624).toFixed(4) : kgm3;
+  const fromDisplayDensity=(val: number)  => isImperial ? +(val / 0.0624).toFixed(4)  : val;
+  const toDisplaySpeed   = (kmh: number)  => isImperial ? +(kmh * 0.621371).toFixed(1): kmh;
+  const toDisplayDist    = (m: number)    => isImperial ? +(m * 3.28084).toFixed(1)   : m;
+  const toDisplayAccel   = (ms2: number)  => isImperial ? +(ms2 * 3.28084).toFixed(2) : ms2;
+  const toDisplayPower   = (kw: number)   => isImperial ? +(kw * 1.341).toFixed(1)    : kw;
+
+  const weightUnit   = isImperial ? 'lbs'   : 'kg';
+  const areaUnit     = isImperial ? 'ft²'   : 'm²';
+  const densityUnit  = isImperial ? 'lb/ft³': 'kg/m³';
+  const speedUnit    = isImperial ? 'mph'   : 'km/h';
+  const distUnit     = isImperial ? 'ft'    : 'm';
+  const accelUnit    = isImperial ? 'ft/s²' : 'm/s²';
+  const powerUnit    = isImperial ? 'hp'    : 'kW';
+  const speed100Label= isImperial ? '0-62'  : '0-100';
+  const speed200Label= isImperial ? '0-124' : '0-200';
 
   // ---------------------------------------------------------------------------
   // Core physics helpers
@@ -314,13 +331,10 @@ export default function HomeScreen() {
       const aspMult = targetSpeed <= 100 ? aspMod.t100Mult : aspMod.t200Mult;
       time = time * aspMult;
 
-      // Diesel penalty: heavier, narrower powerband, slower at same CV/kg
-      // Validated: BMW 320d 190cv 7.1s vs BMW 320i 184cv 7.5s (diesel advantage
-      // only from torque at low RPM in real gear changes, not raw power).
-      // At same CV input, diesel is ~6% slower 0-100, ~9% slower 0-200.
+      // Diesel penalty: heavier, narrower powerband (~6% slower 0-100, ~9% 0-200)
+      // Validated: BMW 320d 190cv 7.1s vs BMW 320i 184cv 7.5s
       if (engineConfig.engineType === 'diesel') {
-        const dieselPenalty = targetSpeed <= 100 ? 1.06 : 1.09;
-        time = time * dieselPenalty;
+        time = time * (targetSpeed <= 100 ? 1.06 : 1.09);
       }
 
       // Weather/terrain multiplier (applied as delta above baseline)
@@ -435,58 +449,45 @@ export default function HomeScreen() {
     });
   }, [cv, kg, efficienza, densitaAria, cd, cr, areaFrontale, weatherConditions.windSpeed]);
 
-  /** Torque curve (unchanged logic, extracted for clarity) */
+  /** Torque curve — engine type + aspiration aware */
   const calculateCoppia = useCallback(() => {
-    const powerCV    = parseFloat(cv);
-    const powerWatt  = powerCV * 735.5;
-    const pesoKg     = parseFloat(kg);
+    const powerCV   = parseFloat(cv);
+    const powerWatt = powerCV * 735.5;
+    const pesoKg    = parseFloat(kg);
     const { engineType, aspiration } = engineConfig;
 
-    // Electric uses fixed RPM range 0-20000 (motor speed, not shown to user)
-    const maxRPMVal  = engineType === 'electric' ? 20000 : parseFloat(maxRPM);
-    const minRPMVal  = engineType === 'electric' ? 0     : (parseFloat(minRPM) || 800);
+    const maxRPMVal = engineType === 'electric' ? 20000 : parseFloat(maxRPM);
+    const minRPMVal = engineType === 'electric' ? 0     : (parseFloat(minRPM) || 800);
     if (!powerWatt || !pesoKg || !maxRPMVal || minRPMVal >= maxRPMVal) return;
 
     const aspMod = ASPIRATION_MODIFIERS[aspiration];
 
     if (engineType === 'electric') {
-      // ── Electric torque curve (empirical: Tesla Model 3 / Polestar 2 / Rivian) ──
-      // Phase 1 (0 → 20% RPM): peak torque — flat (instant delivery)
-      // Phase 2 (20% → 60% RPM): mild linear drop ~5% (thermal/current limits)
-      // Phase 3 (60% → 100% RPM): field weakening — sharper drop to ~25% of peak
+      // EV curve: flat peak → mild drop → field weakening
+      // Empirical: Tesla Model 3, Polestar 2, Rivian R1T dyno data
       const coppiaTeorica = (60 * powerWatt) / (2 * Math.PI * Math.max(maxRPMVal * 0.2, 100));
-      const coppiaMax = coppiaTeorica * 0.90; // EV slightly higher mechanical efficiency
+      const coppiaMax = coppiaTeorica * 0.90;
       setCoppiaMassima(coppiaMax);
-
-      const rpmPhase1End = maxRPMVal * 0.20;
-      const rpmPhase2End = maxRPMVal * 0.60;
+      const p1 = maxRPMVal * 0.20;
+      const p2 = maxRPMVal * 0.60;
       const data: { rpm: number; coppia: number }[] = [];
-      for (let rpm = minRPMVal; rpm <= maxRPMVal; rpm += Math.max(1, Math.floor(maxRPMVal / 50))) {
+      for (let rpm = 0; rpm <= maxRPMVal; rpm += Math.max(1, Math.floor(maxRPMVal / 50))) {
         let coppia: number;
-        if (rpm <= rpmPhase1End) {
-          coppia = coppiaMax;
-        } else if (rpm <= rpmPhase2End) {
-          const t = (rpm - rpmPhase1End) / (rpmPhase2End - rpmPhase1End);
-          coppia = coppiaMax * (1.0 - 0.05 * t);
-        } else {
-          const t = (rpm - rpmPhase2End) / (maxRPMVal - rpmPhase2End);
-          coppia = coppiaMax * 0.95 * (1.0 - 0.70 * t); // drops to ~28% at redline
-        }
+        if (rpm <= p1)      coppia = coppiaMax;
+        else if (rpm <= p2) coppia = coppiaMax * (1.0 - 0.05 * (rpm - p1) / (p2 - p1));
+        else                coppia = coppiaMax * 0.95 * (1.0 - 0.70 * (rpm - p2) / (maxRPMVal - p2));
         data.push({ rpm, coppia: Math.max(coppia, 0) });
       }
       setCoppiaGraphData(data);
       return;
     }
 
-    // ── ICE torque curve (petrol / diesel) ────────────────────────────────────
+    // ICE — petrol / diesel
     const powerToWeight = powerCV / pesoKg;
     let tipo: 'normal' | 'sport' | 'super';
-    if (powerCV > 500 || powerToWeight > 0.13) tipo = 'super';
+    if (powerCV > 500 || powerToWeight > 0.13)      tipo = 'super';
     else if (powerCV > 150 || powerToWeight > 0.07) tipo = 'sport';
-    else tipo = 'normal';
-
-    // Diesel: peak torque at much lower RPM, narrower band
-    const dieselRpmShift = engineType === 'diesel' ? -1200 : 0;
+    else                                             tipo = 'normal';
 
     const baseConfig = {
       normal: { rpmCoppiaMax: 3000, maxTorqueLimit: 220, decayFactor: 2500, crescitaFactor: 1200 },
@@ -494,19 +495,10 @@ export default function HomeScreen() {
       super:  { rpmCoppiaMax: 6000, maxTorqueLimit: 700, decayFactor: 1800, crescitaFactor: 2000 },
     }[tipo];
 
-    // Apply aspiration RPM shift + diesel shift
-    const rpmCoppiaMax = Math.max(
-      800,
-      baseConfig.rpmCoppiaMax + aspMod.rpmPeakShift + dieselRpmShift
-    );
-
-    // Diesel: decayFactor tighter (narrower powerband)
-    const decayFactor = engineType === 'diesel'
-      ? baseConfig.decayFactor * 0.65
-      : baseConfig.decayFactor;
-
-    // Diesel torque limit +15% (higher compression ratio → more torque per displacement)
-    const dieselTorqueMult = engineType === 'diesel' ? 1.15 : 1.0;
+    const dieselRpmShift  = engineType === 'diesel' ? -1200 : 0;
+    const rpmCoppiaMax    = Math.max(800, baseConfig.rpmCoppiaMax + aspMod.rpmPeakShift + dieselRpmShift);
+    const decayFactor     = engineType === 'diesel' ? baseConfig.decayFactor * 0.65 : baseConfig.decayFactor;
+    const dieselTorqueMult= engineType === 'diesel' ? 1.15 : 1.0;
 
     const coppiaTeorica = (60 * powerWatt) / (2 * Math.PI * rpmCoppiaMax);
     const coppiaMax = Math.min(
@@ -518,33 +510,23 @@ export default function HomeScreen() {
     const data: { rpm: number; coppia: number }[] = [];
     for (let rpm = minRPMVal; rpm <= maxRPMVal; rpm += 1000) {
       let coppia: number;
-
       if (aspiration === 'turbo' || aspiration === 'biturbo') {
-        // Turbo lag model — validated on Golf GTI EA888, BMW N54, Porsche 992 Turbo
-        // Below boost threshold: coppia at ~25-30% of peak (wastegate closed, no boost)
-        // Above threshold: rapid rise to peak (boost builds quickly)
+        // Turbo lag: validated on Golf GTI EA888, BMW N54, Porsche 992 Turbo
         const boostThreshold = aspiration === 'biturbo' ? 2800 : 2200;
-        const lagFactor = aspiration === 'biturbo' ? 0.22 : 0.28;
-
+        const lagFactor      = aspiration === 'biturbo' ? 0.22 : 0.28;
         if (rpm < boostThreshold) {
-          // Pre-boost: low torque, rises slowly like natural aspiration
           coppia = coppiaMax * lagFactor * (1 - Math.exp(-rpm / (baseConfig.crescitaFactor * 1.5)));
         } else if (rpm <= rpmCoppiaMax) {
-          // Boost onset: steep rise from lagFactor to 1.0
           const t = (rpm - boostThreshold) / (rpmCoppiaMax - boostThreshold);
           coppia = coppiaMax * (lagFactor + (1 - lagFactor) * Math.pow(t, 0.5));
         } else {
-          // Post-peak: same gaussian decay as base
           coppia = coppiaMax * Math.exp(-Math.pow((rpm - rpmCoppiaMax) / decayFactor, 2));
         }
       } else {
-        // Natural aspiration / supercharger — smooth exponential rise + gaussian decay
-        coppia =
-          rpm <= rpmCoppiaMax
-            ? coppiaMax * (1 - Math.exp(-rpm / baseConfig.crescitaFactor))
-            : coppiaMax * Math.exp(-Math.pow((rpm - rpmCoppiaMax) / decayFactor, 2));
+        coppia = rpm <= rpmCoppiaMax
+          ? coppiaMax * (1 - Math.exp(-rpm / baseConfig.crescitaFactor))
+          : coppiaMax * Math.exp(-Math.pow((rpm - rpmCoppiaMax) / decayFactor, 2));
       }
-
       data.push({ rpm, coppia: Math.max(coppia, 0) });
     }
     setCoppiaGraphData(data);
@@ -606,7 +588,9 @@ export default function HomeScreen() {
     labelKey: string,
     state: string,
     setter: (value: string) => void,
-    helpKey: string
+    helpKey: string,
+    placeholderOverride?: string,
+    labelOverride?: string,
   ) => (
     <View style={styles.inputGroup} key={helpKey}>
       <View style={styles.labelContainer}>
@@ -617,14 +601,14 @@ export default function HomeScreen() {
         >
           <Feather name='help-circle' size={16} color={currentTheme.text} style={styles.helpIcon} />
         </TouchableOpacity>
-        <Text style={dynamicStyles.label}> {t(labelKey)}</Text>
+        <Text style={dynamicStyles.label}> {labelOverride ?? t(labelKey)}</Text>
       </View>
       <TextInput
         style={dynamicStyles.input}
         keyboardType='numeric'
         value={state}
         onChangeText={setter}
-        placeholder={t(`${labelKey}_placeholder`)}
+        placeholder={placeholderOverride ?? t(`${labelKey}_placeholder`)}
         placeholderTextColor={currentTheme.placeHolderColor}
       />
       {selectedHelp === helpKey && (
@@ -650,6 +634,11 @@ export default function HomeScreen() {
           <Switch value={isEnglish} onValueChange={handleLanguageToggle} />
           <Text style={dynamicStyles.languageText}>EN</Text>
         </View>
+        <View style={styles.languageContainer}>
+          <Text style={dynamicStyles.languageText}>MET</Text>
+          <Switch value={isImperial} onValueChange={() => setIsImperial(v => !v)} />
+          <Text style={dynamicStyles.languageText}>IMP</Text>
+        </View>
         <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
           <Feather
             name={colorScheme === 'dark' ? 'moon' : 'sun'}
@@ -662,7 +651,7 @@ export default function HomeScreen() {
       <View style={styles.inputsWrapper}>
         {/* Vehicle inputs */}
         {renderInputField('cv', cv, setCv, 'cv')}
-        {renderInputField('kg', kg, setKg, 'kg')}
+        {renderInputField('kg', kg, setKg, 'kg', isImperial ? t('kg_placeholder_imperial') : undefined, isImperial ? t('kg_imperial') : undefined)}
 
         {/* Engine type + aspiration */}
         <View style={styles.inputGroup}>
@@ -708,6 +697,7 @@ export default function HomeScreen() {
           conditions={weatherConditions}
           onChange={setWeatherConditions}
           currentTheme={currentTheme}
+          isImperial={isImperial}
         />
 
         {/* Buttons */}
@@ -737,9 +727,10 @@ export default function HomeScreen() {
           <ZeroTo100Chart
             graphData={graphData100}
             currentTheme={currentTheme}
-            title={`${t('tempo')} ${result.time0to100} ${t('seconds')}`}
+            title={`${speed100Label} ${speedUnit}: ${result.time0to100} ${t('seconds')}`}
             description={t('chart_0_100_desc')}
             legendTitle={t('chart_0_100_legend')}
+            isImperial={isImperial}
           />
         )}
 
@@ -748,9 +739,10 @@ export default function HomeScreen() {
           <ZeroTo200Chart
             graphData={graphData200}
             currentTheme={currentTheme}
-            title={`0-200 km/h: ${result.time0to200} s`}
+            title={`${speed200Label} ${speedUnit}: ${result.time0to200} ${t('seconds')}`}
             description={t('chart_0_200_desc')}
             legendTitle={t('chart_0_200_legend')}
+            isImperial={isImperial}
           />
         )}
 
@@ -759,9 +751,10 @@ export default function HomeScreen() {
           <TheoreticalTopSpeed
             topSpeedGraphData={topSpeedGraphData}
             currentTheme={currentTheme}
-            title={`${t('top_speed')} ${result.topSpeed} km/h`}
-            legendTitle={t('chart_topspeed_legend')}
+            title={`${t('top_speed')} ${toDisplaySpeed(parseFloat(result.topSpeed)).toFixed(1)} ${speedUnit}`}
+            legendTitle={`${t('chart_topspeed_legend')} (${speedUnit})`}
             description={t('chart_topspeed_desc')}
+            isImperial={isImperial}
           />
         )}
 
@@ -772,6 +765,7 @@ export default function HomeScreen() {
             currentTheme={currentTheme}
             title={t('chart_power_title')}
             description={t('chart_power_desc')}
+            isImperial={isImperial}
           />
         )}
 
@@ -780,9 +774,10 @@ export default function HomeScreen() {
           <MaxTorqueChart
             coppiaGraphData={coppiaGraphData}
             currentTheme={currentTheme}
-            title={`${t('coppia_massima')}: ${coppiaMassima!.toFixed(2)} Nm`}
+            title={`${t('coppia_massima')}: ${isImperial ? (coppiaMassima! * 0.7376).toFixed(2) + ' lb·ft' : coppiaMassima!.toFixed(2) + ' Nm'}`}
             legendTitle={t('chart_torque_legend')}
             description={t('chart_torque_desc')}
+            isImperial={isImperial}
           />
         )}
 
@@ -793,6 +788,16 @@ export default function HomeScreen() {
             kg={parseFloat(kg)}
             result={result}
             currentTheme={currentTheme}
+            isImperial={isImperial}
+            speed100Label={speed100Label}
+            speed200Label={speed200Label}
+            speedUnit={speedUnit}
+            toDisplayPower={toDisplayPower}
+            toDisplayDist={toDisplayDist}
+            toDisplayAccel={toDisplayAccel}
+            powerUnit={powerUnit}
+            distUnit={distUnit}
+            accelUnit={accelUnit}
           />
         )}
       </View>
@@ -808,10 +813,10 @@ const styles = StyleSheet.create({
     fontSize: 24, color: '#004aad', marginTop: 20, marginBottom: 10, textAlign: 'center',
   },
   controlsContainer: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, flexWrap: 'wrap', gap: 6,
   },
   languageContainer: { flexDirection: 'row', alignItems: 'center' },
-  themeToggle: { marginLeft: 200, color: '#004aad', borderRadius: 100, padding: 5, borderColor: 'white' },
+  themeToggle: { color: '#004aad', borderRadius: 100, padding: 5, borderColor: 'white' },
   inputsWrapper: { width: '90%', marginTop: 10 },
   inputGroup:   { marginBottom: 15 },
   labelContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },

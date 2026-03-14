@@ -12,6 +12,7 @@ interface TheoreticalTopSpeedProps {
   title: string;
   legendTitle: string;
   description: string;
+  isImperial?: boolean;
 }
 
 const TheoreticalTopSpeed: React.FC<TheoreticalTopSpeedProps> = ({
@@ -20,20 +21,28 @@ const TheoreticalTopSpeed: React.FC<TheoreticalTopSpeedProps> = ({
   title,
   legendTitle,
   description,
+  isImperial = false,
 }) => {
   //need to modify topSpeedGraphData to properly render on chart
+  const KW_TO_HP = 1.341;
+  const KMH_TO_MPH = 0.621371;
+  const powerUnit = isImperial ? ' hp' : ' kW';
   const graphData = [{ value: 0 }];
 
   topSpeedGraphData.datasets[0].data.forEach((kW, index) => {
     if ((index + 1) % 50 === 0) {
-      graphData.push({ value: kW });
+      graphData.push({ value: isImperial ? kW * KW_TO_HP : kW });
     }
   });
 
   const modifiedData = graphData.map((item, index) => {
+    const rawLabel = topSpeedGraphData.labels[index];
+    const convertedLabel = isImperial && rawLabel
+      ? String(Math.round(parseFloat(rawLabel) * KMH_TO_MPH))
+      : rawLabel;
     return {
       ...item,
-      label: topSpeedGraphData.labels[index],
+      label: convertedLabel,
     };
   });
 
@@ -85,7 +94,7 @@ const TheoreticalTopSpeed: React.FC<TheoreticalTopSpeedProps> = ({
             textFontSize1={15}
             textShiftX={-30}
             disableScroll={true}
-            yAxisLabelSuffix=' kW'
+            yAxisLabelSuffix={powerUnit}
             yAxisLabelWidth={55}
             curved
           />
