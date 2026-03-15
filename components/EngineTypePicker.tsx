@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Image, Text, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type EngineType     = 'petrol' | 'diesel' | 'electric';
@@ -65,6 +67,7 @@ function isDark(hex: string): boolean {
 
 const EngineTypePicker: React.FC<EngineTypePickerProps> = ({ config, setConfig, currentTheme }) => {
   const dark = isDark(currentTheme.background);
+  const { t } = useTranslation();
 
   const renderOption = (
     key: string,
@@ -138,16 +141,16 @@ const EngineTypePicker: React.FC<EngineTypePickerProps> = ({ config, setConfig, 
     <View>
       {/* Engine row */}
       <Text style={[styles.sectionLabel, { color: dark ? '#4466aa' : '#8899bb' }]}>
-        ENGINE
+        {t('engine_type') ?? 'ENGINE'}
       </Text>
       <View style={styles.row}>
         {ENGINE_OPTIONS.map((type) =>
           renderOption(
             type,
             engineIcons[type],
-            type.toUpperCase(),
+            t(`engine_${type}`) ?? type.toUpperCase(),
             config.engineType === type,
-            () => setConfig({ ...config, engineType: type }),
+            () => { Haptics.selectionAsync(); setConfig({ ...config, engineType: type }); },
           )
         )}
       </View>
@@ -156,16 +159,16 @@ const EngineTypePicker: React.FC<EngineTypePickerProps> = ({ config, setConfig, 
       {config.engineType !== 'electric' && (
         <>
           <Text style={[styles.sectionLabel, { color: dark ? '#4466aa' : '#8899bb', marginTop: 12 }]}>
-            ASPIRATION
+            {t('aspiration') ?? 'ASPIRATION'}
           </Text>
           <View style={styles.row}>
             {ASPIRATION_OPTIONS.map((mode) =>
               renderOption(
                 mode,
                 aspirationIcons[mode],
-                mode.toUpperCase(),
+                t(`aspiration_${mode}`) ?? mode.toUpperCase(),
                 config.aspiration === mode,
-                () => setConfig({ ...config, aspiration: mode }),
+                () => { Haptics.selectionAsync(); setConfig({ ...config, aspiration: mode }); },
               )
             )}
           </View>

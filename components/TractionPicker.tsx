@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Image, Text, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 interface TractionPickerProps {
   trazione: string;
@@ -34,9 +36,14 @@ const TractionPicker: React.FC<TractionPickerProps> = ({
   currentTheme,
 }) => {
   const dark = isDark(currentTheme.background);
+  const { t } = useTranslation();
 
   return (
-    <View style={styles.container}>
+    <View>
+      <Text style={[styles.sectionLabel, { color: dark ? '#4466aa' : '#8899bb' }]}>
+        {t('traction') ?? 'TRACTION'}
+      </Text>
+      <View style={styles.container}>
       {tractionOptions.map((type) => {
         const isActive = trazione === type;
         const accentColor = ACCENT;
@@ -56,7 +63,7 @@ const TractionPicker: React.FC<TractionPickerProps> = ({
             )}
 
             <TouchableOpacity
-              onPress={() => setTrazione(type)}
+              onPress={() => { Haptics.selectionAsync(); setTrazione(type); }}
               activeOpacity={0.75}
               style={[
                 styles.iconContainer,
@@ -84,7 +91,7 @@ const TractionPicker: React.FC<TractionPickerProps> = ({
             <Text style={[
               styles.label,
               {
-                color: isActive ? accentColor : (dark ? '#6677aa' : '#8899bb'),
+                color: isActive ? (dark ? '#ffffff' : ACCENT) : (dark ? '#445577' : '#aab8cc'),
                 fontWeight: isActive ? '700' : '400',
               },
             ]}>
@@ -93,6 +100,7 @@ const TractionPicker: React.FC<TractionPickerProps> = ({
           </View>
         );
       })}
+      </View>
     </View>
   );
 };
@@ -135,7 +143,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   icon:  { width: 48, height: 48 },
-  label: { marginTop: 7, fontSize: 12, letterSpacing: 1, zIndex: 1, textAlign: 'center' },
+  label: { marginTop: 10, fontSize: 12, letterSpacing: 1, zIndex: 1, textAlign: 'center' },
+  sectionLabel: {
+    fontSize: 12,
+    letterSpacing: 2,
+    fontWeight: '700',
+    marginBottom: 18,
+    textAlign: 'center',
+  },
 });
 
 export default TractionPicker;

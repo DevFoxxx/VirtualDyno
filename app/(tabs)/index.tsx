@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Feather from '@expo/vector-icons/Feather';
+import * as Haptics from 'expo-haptics';
 import TractionPicker from '@/components/TractionPicker';
 import TheoreticalTopSpeed from '@/components/TheoreticalTopSpeed';
 import MaxTorqueChart from '@/components/MaxTorqueChart';
@@ -575,9 +576,11 @@ export default function HomeScreen() {
   // ---------------------------------------------------------------------------
   const handleCalculate = () => {
     if (!requiredFieldsFilled) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setShowError(true);
       return;
     }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setShowError(false);
 
     // Give UI time to render before heavy computation
@@ -612,6 +615,7 @@ export default function HomeScreen() {
   };
 
   const handleReset = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCv(''); setKg(''); setEfficienza('0.85'); setDensitaAria('1.225');
     setCd('0.30'); setCr('0.015'); setAreaFrontale('2');
     setMinRPM('500'); setMaxRPM(''); setTrazione('');
@@ -631,31 +635,45 @@ export default function HomeScreen() {
     helpKey: string,
     placeholderOverride?: string,
     labelOverride?: string,
-  ) => (
-    <View style={styles.inputGroup} key={helpKey}>
-      <View style={styles.labelContainer}>
-        <TouchableOpacity
-          onPress={() =>
-            setSelectedHelp(selectedHelp === helpKey ? null : (helpKey as HelpKey))
-          }
-        >
-          <Feather name='help-circle' size={16} color={currentTheme.text} style={styles.helpIcon} />
-        </TouchableOpacity>
-        <Text style={dynamicStyles.label}> {labelOverride ?? t(labelKey)}</Text>
+  ) => {
+    const isDark = currentTheme.background !== '#fff';
+    const labelText = labelOverride ?? t(labelKey);
+    const placeholder = placeholderOverride ?? t(`${labelKey}_placeholder`);
+    return (
+      <View style={styles.inputGroup} key={helpKey}>
+        <View style={[styles.inputCard, { backgroundColor: isDark ? '#101c2e' : '#f4f7ff', borderColor: state ? '#004aad' : (isDark ? '#1e2e45' : '#dce4f5') }]}>
+          <View style={styles.inputCardHeader}>
+            <Text style={[styles.inputCardLabel, { color: state ? '#004aad' : (isDark ? '#4a6890' : '#8899bb') }]}>
+              {labelText}
+            </Text>
+            <TouchableOpacity
+              onPress={() =>
+                setSelectedHelp(selectedHelp === helpKey ? null : (helpKey as HelpKey))
+              }
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather
+                name='help-circle'
+                size={15}
+                color={selectedHelp === helpKey ? '#004aad' : (isDark ? '#3a5070' : '#b0bdd0')}
+              />
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={[styles.inputCardField, { color: currentTheme.text }]}
+            keyboardType='numeric'
+            value={state}
+            onChangeText={setter}
+            placeholder={placeholder}
+            placeholderTextColor={isDark ? '#2a3e58' : '#c0cce0'}
+          />
+        </View>
+        {selectedHelp === helpKey && (
+          <Text style={styles.helpText}>{helpMessages[helpKey as HelpKey]}</Text>
+        )}
       </View>
-      <TextInput
-        style={dynamicStyles.input}
-        keyboardType='numeric'
-        value={state}
-        onChangeText={setter}
-        placeholder={placeholderOverride ?? t(`${labelKey}_placeholder`)}
-        placeholderTextColor={currentTheme.placeHolderColor}
-      />
-      {selectedHelp === helpKey && (
-        <Text style={styles.helpText}>{helpMessages[helpKey as HelpKey]}</Text>
-      )}
-    </View>
-  );
+    );
+  };
 
   const buttonStyle = requiredFieldsFilled ? styles.buttonWhite : styles.buttonDisabled;
 
@@ -670,7 +688,6 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>Performance Simulator</Text>
           </View>
         </View>
-        <View style={styles.headerAccent} />
       </View>
 
       {/* Controls row — segmented pill */}
@@ -679,13 +696,13 @@ export default function HomeScreen() {
         <View style={[styles.pillGroup, { backgroundColor: currentTheme.background === '#fff' ? '#f0f4ff' : '#1a2235' }]}>
           <TouchableOpacity
             style={[styles.pillOption, !isEnglish && styles.pillOptionActive]}
-            onPress={() => { if (isEnglish) handleLanguageToggle(); }}
+            onPress={() => { if (isEnglish) { Haptics.selectionAsync(); handleLanguageToggle(); } }}
           >
             <Text style={[styles.pillText, !isEnglish && styles.pillTextActive]}>IT</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.pillOption, isEnglish && styles.pillOptionActive]}
-            onPress={() => { if (!isEnglish) handleLanguageToggle(); }}
+            onPress={() => { if (!isEnglish) { Haptics.selectionAsync(); handleLanguageToggle(); } }}
           >
             <Text style={[styles.pillText, isEnglish && styles.pillTextActive]}>EN</Text>
           </TouchableOpacity>
@@ -695,13 +712,13 @@ export default function HomeScreen() {
         <View style={[styles.pillGroup, { backgroundColor: currentTheme.background === '#fff' ? '#f0f4ff' : '#1a2235' }]}>
           <TouchableOpacity
             style={[styles.pillOption, !isImperial && styles.pillOptionActive]}
-            onPress={() => setIsImperial(false)}
+            onPress={() => { Haptics.selectionAsync(); setIsImperial(false); }}
           >
             <Text style={[styles.pillText, !isImperial && styles.pillTextActive]}>MET</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.pillOption, isImperial && styles.pillOptionActive]}
-            onPress={() => setIsImperial(true)}
+            onPress={() => { Haptics.selectionAsync(); setIsImperial(true); }}
           >
             <Text style={[styles.pillText, isImperial && styles.pillTextActive]}>IMP</Text>
           </TouchableOpacity>
@@ -711,13 +728,13 @@ export default function HomeScreen() {
         <View style={[styles.pillGroup, { backgroundColor: currentTheme.background === '#fff' ? '#f0f4ff' : '#1a2235' }]}>
           <TouchableOpacity
             style={[styles.pillOption, colorScheme !== 'dark' && styles.pillOptionActive]}
-            onPress={() => { if (colorScheme === 'dark') toggleTheme(); }}
+            onPress={() => { if (colorScheme === 'dark') { Haptics.selectionAsync(); toggleTheme(); } }}
           >
             <Feather name="sun" size={14} color={colorScheme !== 'dark' ? '#fff' : '#888'} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.pillOption, colorScheme === 'dark' && styles.pillOptionActive]}
-            onPress={() => { if (colorScheme !== 'dark') toggleTheme(); }}
+            onPress={() => { if (colorScheme !== 'dark') { Haptics.selectionAsync(); toggleTheme(); } }}
           >
             <Feather name="moon" size={14} color={colorScheme === 'dark' ? '#fff' : '#888'} />
           </TouchableOpacity>
@@ -752,20 +769,7 @@ export default function HomeScreen() {
 
         {/* Traction picker */}
         <View style={styles.inputGroup}>
-          <View style={styles.labelContainer}>
-            <TouchableOpacity
-              onPress={() =>
-                setSelectedHelp(selectedHelp === 'trazione' ? null : 'trazione')
-              }
-            >
-              <Feather name='help-circle' size={16} color={currentTheme.text} style={styles.helpIcon} />
-            </TouchableOpacity>
-            <Text style={dynamicStyles.label}> {t('trazione')}</Text>
-          </View>
           <TractionPicker trazione={trazione} setTrazione={setTrazione} currentTheme={{ text: currentTheme.text, background: currentTheme.background }} />
-          {selectedHelp === 'trazione' && (
-            <Text style={styles.helpText}>{helpMessages.trazione}</Text>
-          )}
         </View>
 
         {/* Terrain & Weather picker */}
@@ -888,6 +892,8 @@ export default function HomeScreen() {
             accelUnit={accelUnit}
           />
         )}
+
+        <View style={{ marginBottom: 40 }} />
       </View>
     </ScrollView>
   );
@@ -902,10 +908,6 @@ const styles = StyleSheet.create({
   logo: { width: 52, height: 52, borderRadius: 12 },
   title: { fontSize: 26, fontWeight: '800', color: '#004aad', letterSpacing: -0.5 },
   subtitle: { fontSize: 11, color: '#6b8ccc', letterSpacing: 2, textTransform: 'uppercase', marginTop: 1 },
-  headerAccent: {
-    position: 'absolute', right: -30, top: 0, width: 140, height: 140,
-    borderRadius: 70, backgroundColor: 'rgba(0,74,173,0.06)',
-  },
 
   // ── Pill row ─────────────────────────────────────────────────────────────
   pillRow: {
@@ -930,10 +932,38 @@ const styles = StyleSheet.create({
 
   // ── Inputs ───────────────────────────────────────────────────────────────
   inputsWrapper: { width: '90%', marginTop: 6 },
-  inputGroup:    { marginBottom: 15 },
+  inputGroup:    { marginBottom: 12 },
   labelContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
   helpIcon: { marginLeft: 5, paddingBottom: 10 },
-  helpText: { fontSize: 12, color: '#888', marginTop: 5, paddingLeft: 4 },
+  helpText: { fontSize: 12, color: '#6b8ccc', marginTop: 5, paddingLeft: 6, fontStyle: 'italic' },
+
+  // ── Input Card (new floating-label style) ────────────────────────────────
+  inputCard: {
+    borderRadius: 12,
+    borderWidth: 1.5,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 6,
+  },
+  inputCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  inputCardLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  inputCardField: {
+    fontSize: 17,
+    fontWeight: '500',
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+    letterSpacing: 0.2,
+  },
 
   // ── Buttons ──────────────────────────────────────────────────────────────
   buttonContainer: { flexDirection: 'row', gap: 10, marginVertical: 20 },
