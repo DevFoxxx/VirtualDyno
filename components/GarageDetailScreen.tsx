@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import * as Haptics from 'expo-haptics';
 import { GarageSet } from './useGarage';
+import { ShareModal } from './ShareModal';
 import ZeroTo100Chart from '@/components/ZeroTo100Chart';
 import ZeroTo200Chart from '@/components/ZeroTo200Chart';
 import TheoreticalTopSpeed from '@/components/TheoreticalTopSpeed';
@@ -42,6 +43,7 @@ const engineLabel = (type: string, asp: string): string => {
 
 export default function GarageDetailScreen({ set, currentTheme, onBack }: GarageDetailScreenProps) {
   const dark = isDarkBg(currentTheme.background);
+  const [showShare, setShowShare] = useState(false);
   const isImperial = set.isImperial;
 
   const speedUnit    = isImperial ? 'mph'   : 'km/h';
@@ -107,7 +109,13 @@ export default function GarageDetailScreen({ set, currentTheme, onBack }: Garage
             {set.brand}  ·  {set.model}
           </Text>
         </View>
-        <View style={{ width: 32 }} />
+        <TouchableOpacity
+          onPress={() => { Haptics.selectionAsync(); setShowShare(true); }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={{ width: 32, alignItems: 'flex-end' }}
+        >
+          <Feather name="share-2" size={20} color={ACCENT} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -289,6 +297,13 @@ export default function GarageDetailScreen({ set, currentTheme, onBack }: Garage
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <ShareModal
+        visible={showShare}
+        set={set}
+        currentTheme={currentTheme}
+        onClose={() => setShowShare(false)}
+      />
     </View>
   );
 }

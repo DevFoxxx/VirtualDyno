@@ -8,6 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useGarage, GarageSet } from './useGarage';
 import { GarageCard } from './GarageCard';
 import { SaveSetModal } from './SaveSetModal';
+import { ImportModal } from './ImportModal';
 import GarageDetailScreen from './GarageDetailScreen';
 
 interface GarageScreenProps {
@@ -28,12 +29,17 @@ function isDarkBg(hex: string): boolean {
 }
 
 export default function GarageScreen({ currentTheme, isImperial, onBack }: GarageScreenProps) {
-  const { sets, loading, editSet, deleteSet } = useGarage();
+  const { sets, loading, saveSet, editSet, deleteSet } = useGarage();
   const dark = isDarkBg(currentTheme.background);
 
-  const [editingSet,  setEditingSet]  = useState<GarageSet | null>(null);
+  const [editingSet,   setEditingSet]   = useState<GarageSet | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [detailSet,   setDetailSet]   = useState<GarageSet | null>(null);
+  const [detailSet,    setDetailSet]    = useState<GarageSet | null>(null);
+  const [showImport,   setShowImport]   = useState(false);
+
+  const handleImport = async (data: Omit<GarageSet, 'id' | 'savedAt'>) => {
+    await saveSet(data);
+  };
 
   // ── Detail navigation ──────────────────────────────────────────────────
   if (detailSet) {
@@ -128,6 +134,23 @@ export default function GarageScreen({ currentTheme, isImperial, onBack }: Garag
         onSave={handleModalSave}
         onCancel={() => { setModalVisible(false); setEditingSet(null); }}
       />
+
+      {/* ── Import Modal ── */}
+      <ImportModal
+        visible={showImport}
+        currentTheme={currentTheme}
+        onImport={handleImport}
+        onClose={() => setShowImport(false)}
+      />
+
+      {/* ── FAB ── */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowImport(true); }}
+        activeOpacity={0.85}
+      >
+        <Feather name="download" size={22} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -173,5 +196,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 28,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: ACCENT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: ACCENT,
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
   },
 });
