@@ -823,16 +823,17 @@ export default function HomeScreen() {
 
         {/* Traction picker */}
         <View style={styles.inputGroup}>
-          <View style={styles.labelContainer}>
-            <TouchableOpacity
-              onPress={() =>
-                setSelectedHelp(selectedHelp === 'trazione' ? null : 'trazione')
-              }
-            >
-              <Feather name='help-circle' size={16} color={currentTheme.text} style={styles.helpIcon} />
-            </TouchableOpacity>
-            <Text style={dynamicStyles.label}> {t('trazione')}</Text>
-          </View>
+          {/* <View style={styles.labelContainer}>
+                <TouchableOpacity
+                  onPress={() =>
+                    setSelectedHelp(selectedHelp === 'trazione' ? null : 'trazione')
+                  }
+                >
+                  <Feather name='help-circle' size={16} color={currentTheme.text} style={styles.helpIcon} />
+                </TouchableOpacity>
+                <Text style={dynamicStyles.label}> {t('trazione')}</Text>
+              </View>
+          */}
           <TractionPicker trazione={trazione} setTrazione={setTrazione} currentTheme={{ text: currentTheme.text, background: currentTheme.background }} />
           {selectedHelp === 'trazione' && (
             <Text style={styles.helpText}>{helpMessages.trazione}</Text>

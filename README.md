@@ -18,6 +18,7 @@
 | ![](image-2.png) | ![](image-3.png) |
 | ![](image-4.png) | ![](image-5.png) |
 | ![](image-6.png) | ![](image-7.png) |
+| ![](image-8.png) | ![](image-9.png) |
 
 ---
 
@@ -38,12 +39,15 @@ The physics model is empirically calibrated against data from multiple reliable 
 - **Power distribution chart** — surplus vs. required power across speed bands
 - **Engine types** — Petrol, Diesel, Electric with dedicated physics defaults and torque curves
 - **Aspiration modes** — Natural, Turbo (with lag model), Supercharger, Biturbo
-- **Terrain & weather simulation** — asphalt, wet, snow, mud, sand; temperature, headwind, rain
+- **Terrain & weather simulation** — asphalt, wet, snow, mud, sand; temperature, headwind, rain — collapsible panel with image-based terrain selector and active-state badge
 - **Traction type** — FWD, RWD, AWD with calibrated grip penalties
 - **Advanced parameters accordion** — efficiency, air density, Cd, Cr, frontal area
 - **Metric / Imperial toggle** — full conversion across all inputs, outputs, and chart axes
 - **English / Italian** language switch
 - **Light / Dark theme**
+- **Haptic feedback** — selection, impact, and error vibrations across all interactive elements
+- **Garage** — save, browse, edit, and delete vehicle sets with full chart replay
+- **Share & Import** — three sharing modes (Social, Code, JSON) and two import methods (code paste, file picker)
 
 ## Physics model
 
@@ -71,6 +75,12 @@ The physics model is empirically calibrated against data from multiple reliable 
 | react-native-gifted-charts | Line charts and bar charts |
 | @react-native-community/slider | Terrain & weather sliders |
 | react-native-reanimated | Animations |
+| expo-haptics | Haptic feedback |
+| @react-native-async-storage/async-storage | Garage local persistence |
+| expo-sharing | JSON file export |
+| expo-file-system | File read/write for import/export |
+| expo-clipboard | Copy share code to clipboard |
+| expo-document-picker | JSON file import picker |
 
 ## Installation
 
@@ -79,6 +89,8 @@ git clone https://github.com/DevFoxxx/VirtualDyno.git
 cd VirtualDyno
 npm install
 npx expo install @react-native-community/slider
+npx expo install @react-native-async-storage/async-storage
+npx expo install expo-sharing expo-file-system expo-clipboard expo-document-picker
 npx expo start
 ```
 
@@ -88,21 +100,78 @@ Scan the QR code with Expo Go on Android or iOS, or press `a` for an Android emu
 
 ```
 app/
-  index.tsx                  # Main screen — all state, physics, layout
+  (tabs)/
+    index.tsx                  # Main screen — all state, physics, layout
+
 components/
-  AdditionalStats.tsx        # Derived stats (kW, hp, CV/t, distance…)
-  EngineTypePicker.tsx       # Engine type + aspiration selector
-  MaxTorqueChart.tsx         # RPM vs torque line chart
-  PowerDistributionChart.tsx # Grouped bar chart by speed band
-  TerrainWeatherPicker.tsx   # Terrain buttons + weather sliders
-  TheoreticalTopSpeed.tsx    # Power available vs required chart
-  TractionPicker.tsx         # FWD / RWD / AWD icon selector
-  ZeroTo100Chart.tsx         # 0–100 speed-time line chart
-  ZeroTo200Chart.tsx         # 0–200 speed-time line chart
+  AdditionalStats.tsx          # Derived stats (kW, kg/CV, CV/t, distance…)
+  EngineTypePicker.tsx         # Engine type + aspiration selector with i18n
+  GarageCard.tsx               # Single saved-set card (list view)
+  GarageDetailScreen.tsx       # Full detail view: summary + all charts + share
+  GarageScreen.tsx             # Garage list screen with FAB import button
+  ImportModal.tsx              # Import modal: code tab + JSON file tab
+  MaxTorqueChart.tsx           # RPM vs torque line chart
+  PowerDistributionChart.tsx   # Grouped bar chart by speed band
+  SaveSetModal.tsx             # Bottom sheet to save or edit a set
+  ShareModal.tsx               # Share bottom sheet: Social / Code / JSON
+  TerrainWeatherPicker.tsx     # Collapsible terrain + weather panel
+  TheoreticalTopSpeed.tsx      # Power available vs required chart
+  TractionPicker.tsx           # FWD / RWD / AWD icon selector
+  shareUtils.ts                # encode/decode share code, export/import JSON
+  useGarage.ts                 # CRUD hook for AsyncStorage garage
+
 i18n/
-  en.json                    # English translations
-  it.json                    # Italian translations
+  en.json                      # English translations
+  it.json                      # Italian translations
+
+assets/
+  images/
+    asphalt.png                # Terrain icons
+    wet.png
+    snow.png
+    mud.png
+    sand.png
+    petrol.png                 # Engine type icons
+    diesel.png
+    electric.png
+    natural.png                # Aspiration icons
+    turbo.png
+    supercharger.png
+    biturbo.png
+    FWD.png                    # Traction icons
+    RWD.png
+    AWD.png
 ```
+
+## Garage & sharing
+
+### Garage
+
+The Garage stores vehicle sets locally using AsyncStorage. Each set captures the full input configuration, weather conditions, and results. Saved sets can be browsed from the main screen via the **Garage** button in the header.
+
+- Tap a card to open its full detail view with all charts replayed from saved data
+- Edit icon (✏️) — rename title, manufacturer, or model; a grey *edited* label appears after any update
+- Trash icon (🗑) — delete with confirmation alert
+- FAB (⬇) — opens the Import modal
+
+### Share & Import
+
+From any set's detail screen, tap the **share icon** (↗) to open a bottom sheet with three options:
+
+| Option | What it does |
+|--------|-------------|
+| **Social Share** | Formatted text with key results + import code — share via WhatsApp, Telegram, etc. |
+| **Share Code** | Generates a `VD-XXXXXX-…` code, copies it to clipboard, and opens the system share sheet |
+| **Export JSON** | Creates a lightweight `.json` file (~2 KB, inputs only) and shares it via the system share sheet |
+
+To import a set, tap the **FAB (⬇)** in the Garage screen:
+
+| Tab | How to use |
+|-----|-----------|
+| **Enter Code** | Paste the full `VD-XXXXXX-…` code received from another user |
+| **Open File** | Pick a `.json` file exported from VirtualDyno |
+
+> Imported sets store input parameters only. Charts are recalculated on the device at import time — no stale graph data is carried over.
 
 ## Unit system
 
@@ -125,7 +194,8 @@ Pull requests are welcome. The areas most open to contribution are:
 1. **Physics improvements** — torque-curve-based numerical integration for more accurate intermediate times
 2. **UI / UX** — layout polish, chart label alignment (see open issues)
 3. **New vehicle profiles** — preset configurations for common cars
-4. **Bug fixes** — check the [Issues](https://github.com/DevFoxxx/VirtualDyno/issues) tab
+4. **Translations** — additional languages beyond EN / IT
+5. **Bug fixes** — check the [Issues](https://github.com/DevFoxxx/VirtualDyno/issues) tab
 
 Please open an issue before starting significant work so we can coordinate.
 
@@ -154,12 +224,15 @@ Il modello fisico è calibrato empiricamente su dati provenienti da diverse font
 - **Grafico distribuzione potenza** — potenza residua vs. richiesta per fasce di velocità
 - **Tipo di motore** — Benzina, Diesel, Elettrico con defaults fisici e curve di coppia dedicate
 - **Modalità di aspirazione** — Naturale, Turbo (con modello lag), Compressore, Biturbo
-- **Simulazione fondo & meteo** — asfalto, bagnato, neve, fango, sabbia; temperatura, vento, pioggia
+- **Simulazione fondo & meteo** — asfalto, bagnato, neve, fango, sabbia; temperatura, vento, pioggia — pannello collassabile con selettore fondo basato su icone e badge di stato attivo
 - **Tipo di trazione** — FWD, RWD, AWD con penalità di aderenza calibrate
 - **Accordion parametri avanzati** — efficienza, densità aria, Cd, Cr, area frontale
 - **Toggle Metrico / Imperiale** — conversione completa su input, output e assi dei grafici
 - **Lingua inglese / italiana**
 - **Tema chiaro / scuro**
+- **Feedback aptico** — vibrazione di selezione, impatto ed errore su tutti gli elementi interattivi
+- **Garage** — salva, sfoglia, modifica ed elimina set con riesecuzione completa dei grafici
+- **Condivisione & Import** — tre modalità di condivisione (Social, Codice, JSON) e due metodi di import (codice, file)
 
 ## Modello fisico
 
@@ -187,6 +260,12 @@ Il modello fisico è calibrato empiricamente su dati provenienti da diverse font
 | react-native-gifted-charts | Grafici a linee e a barre |
 | @react-native-community/slider | Slider per fondo e meteo |
 | react-native-reanimated | Animazioni |
+| expo-haptics | Feedback aptico |
+| @react-native-async-storage/async-storage | Persistenza locale Garage |
+| expo-sharing | Export file JSON |
+| expo-file-system | Lettura/scrittura file per import/export |
+| expo-clipboard | Copia codice di condivisione negli appunti |
+| expo-document-picker | Selettore file per import JSON |
 
 ## Installazione
 
@@ -195,10 +274,42 @@ git clone https://github.com/DevFoxxx/VirtualDyno.git
 cd VirtualDyno
 npm install
 npx expo install @react-native-community/slider
+npx expo install @react-native-async-storage/async-storage
+npx expo install expo-sharing expo-file-system expo-clipboard expo-document-picker
 npx expo start
 ```
 
 Scansiona il QR code con Expo Go su Android o iOS, oppure premi `a` per un emulatore Android.
+
+## Garage e condivisione
+
+### Garage
+
+Il Garage salva i set localmente tramite AsyncStorage. Ogni set contiene la configurazione completa degli input, le condizioni meteo e i risultati. I set salvati sono accessibili dalla schermata principale tramite il bottone **Garage** nell'header.
+
+- Tocca una card per aprire la vista dettaglio completa con tutti i grafici ricostruiti dai dati salvati
+- Icona ✏️ — rinomina titolo, casa automobilistica o modello; dopo ogni modifica compare la scritta *edited* in grigio
+- Icona 🗑 — elimina con alert di conferma
+- FAB ⬇ — apre il modal di import
+
+### Condivisione & Import
+
+Dalla vista dettaglio di un set, tocca l'**icona di condivisione** (↗) per aprire un bottom sheet con tre opzioni:
+
+| Opzione | Cosa fa |
+|---------|---------|
+| **Social Share** | Testo formattato con i risultati chiave + codice di import — condivisibile via WhatsApp, Telegram, ecc. |
+| **Share Code** | Genera un codice `VD-XXXXXX-…`, lo copia negli appunti e apre il sistema di condivisione nativo |
+| **Export JSON** | Crea un file `.json` leggero (~2 KB, solo input) e lo condivide tramite il sistema nativo |
+
+Per importare un set, tocca il **FAB (⬇)** nella schermata Garage:
+
+| Tab | Come si usa |
+|-----|-------------|
+| **Enter Code** | Incolla il codice completo `VD-XXXXXX-…` ricevuto da un altro utente |
+| **Open File** | Seleziona un file `.json` esportato da VirtualDyno |
+
+> I set importati contengono solo i parametri di input. I grafici vengono ricalcolati sul dispositivo al momento dell'import.
 
 ## Sistema di unità
 
@@ -211,7 +322,8 @@ Le pull request sono benvenute. Le aree più aperte ai contributi sono:
 1. **Miglioramenti fisici** — integrazione numerica basata sulla curva di coppia per tempi più precisi
 2. **UI / UX** — rifinitura del layout, allineamento etichette grafici (vedi issues aperti)
 3. **Profili veicolo preimpostati** — configurazioni per auto comuni
-4. **Bug fix** — controlla la sezione [Issues](https://github.com/DevFoxxx/VirtualDyno/issues)
+4. **Traduzioni** — lingue aggiuntive oltre a EN / IT
+5. **Bug fix** — controlla la sezione [Issues](https://github.com/DevFoxxx/VirtualDyno/issues)
 
 Apri un issue prima di iniziare un lavoro significativo, così possiamo coordinarci.
 
