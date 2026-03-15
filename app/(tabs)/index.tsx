@@ -24,6 +24,9 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Feather from '@expo/vector-icons/Feather';
 import * as Haptics from 'expo-haptics';
+import GarageScreen from '@/components/GarageScreen';
+import { SaveSetModal } from '@/components/SaveSetModal';
+import { useGarage } from '@/components/useGarage';
 import TractionPicker from '@/components/TractionPicker';
 import TheoreticalTopSpeed from '@/components/TheoreticalTopSpeed';
 import MaxTorqueChart from '@/components/MaxTorqueChart';
@@ -89,6 +92,8 @@ const advStyles = StyleSheet.create({
   body:       { marginTop: 8, paddingLeft: 4 },
 });
 
+const ACCENT = '#004aad';
+
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const [showError, setShowError] = useState(false);
@@ -148,6 +153,9 @@ export default function HomeScreen() {
     setMinRPM(d.minRPM);
   }, [engineConfig.engineType]);
 
+  const { saveSet } = useGarage();
+  const [showGarage, setShowGarage]       = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const ref = useRef<ScrollView>(null);
   const firstChartRef = useRef<View>(null);
   const firstChartY = useRef<number>(0);
@@ -614,6 +622,31 @@ export default function HomeScreen() {
     }, 50);
   };
 
+  const handleSaveSet = async (title: string, brand: string, model: string) => {
+    await saveSet({
+      title, brand, model,
+      cv, kg, trazione,
+      engineType: engineConfig.engineType,
+      aspiration: engineConfig.aspiration,
+      minRPM, maxRPM,
+      terrain:     weatherConditions.terrain,
+      temperature: weatherConditions.temperature,
+      windSpeed:   weatherConditions.windSpeed,
+      rain:        weatherConditions.rain,
+      isImperial,
+      time0to100:  result.time0to100,
+      time0to200:  result.time0to200,
+      topSpeed:    result.topSpeed,
+      graphData100,
+      graphData200,
+      coppiaGraphData,
+      coppiaMassima,
+      powerBands,
+      topSpeedGraphData,
+    });
+    setShowSaveModal(false);
+  };
+
   const handleReset = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCv(''); setKg(''); setEfficienza('0.85'); setDensitaAria('1.225');
@@ -678,9 +711,21 @@ export default function HomeScreen() {
   const buttonStyle = requiredFieldsFilled ? styles.buttonWhite : styles.buttonDisabled;
 
   return (
+    <>
+    {/* ── Garage Screen (stack) ── */}
+    {showGarage && (
+      <GarageScreen
+        currentTheme={currentTheme}
+        isImperial={isImperial}
+        onBack={() => { Haptics.selectionAsync(); setShowGarage(false); }}
+      />
+    )}
+
+    {!showGarage && (
     <ScrollView ref={ref} contentContainerStyle={dynamicStyles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
+        {/* Row 1: logo + title/subtitle */}
         <View style={styles.headerInner}>
           <Image source={require('../../assets/images/icon.png')} style={styles.logo} />
           <View>
@@ -688,6 +733,15 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>Performance Simulator</Text>
           </View>
         </View>
+        {/* Row 2: garage button below, aligned left with the text */}
+        <TouchableOpacity
+          onPress={() => { Haptics.selectionAsync(); setShowGarage(true); }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={styles.garageBtn}
+        >
+          <Feather name="archive" size={15} color={ACCENT} />
+          <Text style={styles.garageBtnText}>Garage</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Controls row — segmented pill */}
@@ -769,7 +823,20 @@ export default function HomeScreen() {
 
         {/* Traction picker */}
         <View style={styles.inputGroup}>
+          <View style={styles.labelContainer}>
+            <TouchableOpacity
+              onPress={() =>
+                setSelectedHelp(selectedHelp === 'trazione' ? null : 'trazione')
+              }
+            >
+              <Feather name='help-circle' size={16} color={currentTheme.text} style={styles.helpIcon} />
+            </TouchableOpacity>
+            <Text style={dynamicStyles.label}> {t('trazione')}</Text>
+          </View>
           <TractionPicker trazione={trazione} setTrazione={setTrazione} currentTheme={{ text: currentTheme.text, background: currentTheme.background }} />
+          {selectedHelp === 'trazione' && (
+            <Text style={styles.helpText}>{helpMessages.trazione}</Text>
+          )}
         </View>
 
         {/* Terrain & Weather picker */}
@@ -802,11 +869,23 @@ export default function HomeScreen() {
         {showError && <Text style={styles.errorText}>{t('error_fields')}</Text>}
 
         {isResultVisible && (
+          <>
           <View style={styles.risultatiHeader}>
             <View style={styles.risultatiLine} />
             <Text style={styles.risultati}>{t('risultati')}</Text>
             <View style={styles.risultatiLine} />
           </View>
+
+          {/* Save Set button */}
+          <TouchableOpacity
+            style={styles.saveSetBtn}
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowSaveModal(true); }}
+            activeOpacity={0.85}
+          >
+            <Feather name="bookmark" size={15} color={ACCENT} style={{ marginRight: 7 }} />
+            <Text style={styles.saveSetBtnText}>{t('save_set') ?? 'Save Set'}</Text>
+          </TouchableOpacity>
+          </>
         )}
 
         {/* 0-100 chart */}
@@ -896,6 +975,16 @@ export default function HomeScreen() {
         <View style={{ marginBottom: 40 }} />
       </View>
     </ScrollView>
+    )}
+
+    {/* Save Set Modal */}
+    <SaveSetModal
+      visible={showSaveModal}
+      currentTheme={currentTheme}
+      onSave={handleSaveSet}
+      onCancel={() => setShowSaveModal(false)}
+    />
+    </>
   );
 }
 
@@ -992,6 +1081,45 @@ const styles = StyleSheet.create({
   risultati: {
     fontSize: 16, fontWeight: '700', color: '#004aad', letterSpacing: 1.5,
     textTransform: 'uppercase',
+  },
+
+  garageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    marginLeft: 66,   // logo width (52) + gap (14)
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#004aad' + '55',
+    backgroundColor: '#004aad' + '12',
+  },
+  garageBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#004aad',
+    letterSpacing: 0.5,
+  },
+
+  // ── Save Set button ───────────────────────────────────────────────────────
+  saveSetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#004aad',
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  saveSetBtnText: {
+    color: '#004aad',
+    fontWeight: '600',
+    fontSize: 14,
+    letterSpacing: 0.3,
   },
 
   // ── Error ─────────────────────────────────────────────────────────────────
