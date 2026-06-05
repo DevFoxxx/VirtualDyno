@@ -20,7 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useAppTheme } from '@/context/AppThemeContext';
 import { Colors } from '@/constants/Colors';
 import Feather from '@expo/vector-icons/Feather';
 import * as Haptics from 'expo-haptics';
@@ -135,13 +135,7 @@ export default function HomeScreen() {
     datasets: { data: number[] }[];
   }>({ labels: [], datasets: [] });
   const [isResultVisible, setIsResultVisible] = useState(false);
-  const [isEnglish, setIsEnglish] = useState(true); // EN default
   const [isImperial, setIsImperial] = useState(false); // metric default
-
-  // Force EN language on first mount
-  useEffect(() => {
-    i18n.changeLanguage('en');
-  }, []);
 
   // Auto-update physical defaults when engine type changes
   useEffect(() => {
@@ -167,8 +161,12 @@ export default function HomeScreen() {
     efficienza && densitaAria && cd && cr &&
     (isElectric || (minRPM && maxRPM));
 
-  const { colorScheme, toggleTheme } = useColorScheme();
+  const { colorScheme, toggleTheme } = useAppTheme();
   const currentTheme = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const currentLanguage = i18n.language ?? 'en';
+  const isEnglish = currentLanguage.startsWith('en');
+  const isSpanish = currentLanguage.startsWith('es');
+  const isItalian = currentLanguage.startsWith('it');
 
   type HelpKey = keyof typeof helpMessages;
   const helpMessages = {
@@ -213,10 +211,10 @@ export default function HomeScreen() {
     languageText: { color: currentTheme.text },
   };
 
-  const handleLanguageToggle = () => {
-    const newLang = isEnglish ? 'it' : 'en';
-    i18n.changeLanguage(newLang);
-    setIsEnglish(!isEnglish);
+  const setLanguage = (lang: 'en' | 'es' | 'it') => {
+    if (!currentLanguage.startsWith(lang)) {
+      i18n.changeLanguage(lang);
+    }
   };
 
 
@@ -749,16 +747,22 @@ export default function HomeScreen() {
         {/* Language segment */}
         <View style={[styles.pillGroup, { backgroundColor: currentTheme.background === '#fff' ? '#f0f4ff' : '#1a2235' }]}>
           <TouchableOpacity
-            style={[styles.pillOption, !isEnglish && styles.pillOptionActive]}
-            onPress={() => { if (isEnglish) { Haptics.selectionAsync(); handleLanguageToggle(); } }}
-          >
-            <Text style={[styles.pillText, !isEnglish && styles.pillTextActive]}>IT</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             style={[styles.pillOption, isEnglish && styles.pillOptionActive]}
-            onPress={() => { if (!isEnglish) { Haptics.selectionAsync(); handleLanguageToggle(); } }}
+            onPress={() => { if (!isEnglish) { Haptics.selectionAsync(); setLanguage('en'); } }}
           >
             <Text style={[styles.pillText, isEnglish && styles.pillTextActive]}>EN</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.pillOption, isSpanish && styles.pillOptionActive]}
+            onPress={() => { if (!isSpanish) { Haptics.selectionAsync(); setLanguage('es'); } }}
+          >
+            <Text style={[styles.pillText, isSpanish && styles.pillTextActive]}>ES</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.pillOption, isItalian && styles.pillOptionActive]}
+            onPress={() => { if (!isItalian) { Haptics.selectionAsync(); setLanguage('it'); } }}
+          >
+            <Text style={[styles.pillText, isItalian && styles.pillTextActive]}>IT</Text>
           </TouchableOpacity>
         </View>
 
